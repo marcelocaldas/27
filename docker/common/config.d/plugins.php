@@ -1,4 +1,6 @@
 <?php
+use MApasCulturais\Entities;
+
 $config_plugins = [
     'plugins' => [
         'MultipleLocalAuth',
