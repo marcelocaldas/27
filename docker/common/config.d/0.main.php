@@ -17,6 +17,6 @@ return [
     'homeHeader.secondDownloadableLink' => true,
 
     'homeHeader.thirdBanner' => 'img/banner-paulo-gustavo.png',
-    'homeHeader.thirdBannerLink' => '',
-    'homeHeader.thirdDownloadableLink' => false,
+    'homeHeader.thirdBannerLink' => 'https://www.secult.pa.gov.br/download/78/caderno-de-educacao-patrimonial/',
+    'homeHeader.thirdDownloadableLink' => true,
 ];
