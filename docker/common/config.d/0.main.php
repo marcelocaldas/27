@@ -8,7 +8,7 @@ return [
     'themes.active' => "MapasPA",
 
     'app.lcode' => 'pt_BR',
-    'homeHeader.banner' => 'img/banner-caderno-lpg.png',
+    'homeHeader.banner' => 'img/banner-paulo-gustavo.png',
     'homeHeader.bannerLink' => 'https://mapacultural.pa.gov.br/files/agent/7/caderno-de-orientacoes-pcac-27-09-2023.pdf',
     'homeHeader.downloadableLink' => true,
 
@@ -16,7 +16,7 @@ return [
     'homeHeader.secondBannerLink' => 'https://mapacultural.pa.gov.br/files/project/1278/parecer-impostos.pdf',
     'homeHeader.secondDownloadableLink' => true,
 
-    'homeHeader.thirdBanner' => 'img/banner-paulo-gustavo.png',
-    'homeHeader.thirdBannerLink' => 'https://www.secult.pa.gov.br/download/78/caderno-de-educacao-patrimonial/',
+    'homeHeader.thirdBanner' => 'img/banner-educ-patrimonial.png',
+    'homeHeader.thirdBannerLink' => 'https://www.secult.pa.gov.br/midias/anexos/78_caderno_de_educacao_patrimonial_site.pdf',
     'homeHeader.thirdDownloadableLink' => true,
 ];
