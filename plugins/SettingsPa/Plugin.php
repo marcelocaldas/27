@@ -2,9 +2,10 @@
 
 namespace SettingsPa;
 
-use MapasCulturais\App;
-use MapasCulturais\Entities\Agent;
 use MapasCulturais\i;
+use MapasCulturais\App;
+use SettingsPa\Controller;
+use MapasCulturais\Entities\Agent;
 
 class Plugin extends \MapasCulturais\Plugin
 {
@@ -107,7 +108,11 @@ class Plugin extends \MapasCulturais\Plugin
 
     public function register()
     {
+        $app = App::i();
+
         $this->registerTaxonomies();
+
+        $app->registerController('pasettings', Controller::class);
     }
 
     public function registerTaxonomies()

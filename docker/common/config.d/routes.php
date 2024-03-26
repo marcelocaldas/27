@@ -35,4 +35,5 @@ foreach($list as $route => $id) {
     $routes['shortcuts'][$route] = ['opportunity', 'single', [$id]];
 }
 
+$routes['shortcuts']['entidades-resumo'] = ['pasettings', 'querys'];
 return ['routes' => $routes];
