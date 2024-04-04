@@ -27,6 +27,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
 
         // $total_oportunidades = $conn->fetchColumn("select count(*) as total from opportunity");
         $total_oportunidades_publicados = $conn->fetchColumn("select count(*) as total from opportunity where status > 0");
+        $total_oportunidades_oficiais = $conn->fetchColumn("select count(*) as total from  opportunity o where id in (select sr.object_id from seal_relation sr where sr.object_type = 'MapasCulturais\Entities\Opportunity' and sr.status = 1 and sr.seal_id in ('1','2','3','4')) and o.parent_id is null");
         $total_oportunidades_rascunho = $conn->fetchColumn("select count(*) as total from opportunity where status = 0");
         $total_oportunidades_lixeira = $conn->fetchColumn("select count(*) as total from opportunity where status = -10");
         $total_oportunidades_arquivado = $conn->fetchColumn("select count(*) as total from opportunity where status = -2");
@@ -52,6 +53,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
 
         // $total_espacos = $conn->fetchColumn("select count(*) as total from space");
         $total_espacos_publicados = $conn->fetchColumn("select count(*) as total from space where status > 0");
+        $total_espacos_oficiais = $conn->fetchColumn("select count(*) as total from  space e where e.id in (select sr.object_id from seal_relation sr where sr.object_type = 'MapasCulturais\Entities\Space' and sr.status = 1 and sr.seal_id in (1,2,3,4)) and e.parent_id is null");
         $total_espacos_rascunho = $conn->fetchColumn("select count(*) as total from space where status = 0");
         $total_espacos_lixeira = $conn->fetchColumn("select count(*) as total from space where status = -10");
         $total_espacos_arquivado = $conn->fetchColumn("select count(*) as total from space where status = -2");
@@ -77,6 +79,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
 
         // $total_projetos = $conn->fetchColumn("select count(*) as total from project");
         $total_projetos_publicados = $conn->fetchColumn("select count(*) as total from project where status > 0");
+        $total_projetos_oficiais = $conn->fetchColumn("select count(*) as total from  project e where e.id in (select sr.object_id from seal_relation sr where sr.object_type = 'MapasCulturais\Entities\Project' and sr.status = 1 and sr.seal_id in (1,2,3,4)) and e.parent_id is null");
         $total_projetos_rascunho = $conn->fetchColumn("select count(*) as total from project where status = 0");
         $total_projetos_lixeira = $conn->fetchColumn("select count(*) as total from project where status = -10");
         $total_projetos_arquivado = $conn->fetchColumn("select count(*) as total from project where status = -2");
@@ -86,6 +89,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
    
 
         $total_agentes = $conn->fetchColumn("SELECT count(*) as Total from agent WHERE status > 0");
+        $total_agentes_oficiais = $conn->fetchColumn("select count(*) as total from  agent e where e.id in (select sr.object_id from seal_relation sr where sr.object_type = 'MapasCulturais\Entities\Agent' and sr.status = 1 and sr.seal_id in (1,2,3,4)) and e.parent_id is null");
         $total_agentes_inscritos_em_editais = $conn->fetchColumn("select count(*) as total from agent a where a.id in (select r.agent_id from registration r where status > 0) AND a.status > 0");
         $total_agentes_nunca_inscritos_em_editais = $conn->fetchColumn("select count(*) as total from agent a where a.id not in (select r.agent_id from registration r) AND a.status > 0 and a.type = 1");
         $total_agentes_rascunhos = $conn->fetchColumn("SELECT count(*) as Total from agent where status = 0");
@@ -617,76 +621,211 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     )  and 
                     r.status = 10
                 "),
-                'Suplentes' =>  $conn->fetchOne("
-                    select 
-                        count(*) 
-                    from 
-                        registration r 
-                    where 
-                        r.opportunity_id 
-                    in (
-                        select 
-                            o.id 
-                        from 
-                            opportunity o
-                        join 
-                            opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
-                        WHERE 
-                            o.parent_id = {$values['id']}
-                    )  and 
-                    r.status = 8
-                "),
-                'Não selecionadas' =>  $conn->fetchOne("
-                    select 
-                        count(*) 
-                    from 
-                        registration r 
-                    where 
-                        r.opportunity_id 
-                    in (
-                        select 
-                            o.id 
-                        from 
-                            opportunity o
-                        join 
-                            opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
-                        WHERE 
-                            o.parent_id = {$values['id']}
-                    )  and 
-                    r.status = 3
-                "),
-                'Inválidas' =>  $conn->fetchOne("
-                    select 
-                        count(*) 
-                    from 
-                        registration r 
-                    where 
-                        r.opportunity_id 
-                    in (
-                        select 
-                            o.id 
-                        from 
-                            opportunity o
-                        join 
-                            opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
-                        WHERE 
-                            o.parent_id = {$values['id']}
-                    )  and 
-                    r.status = 2
-                ")
+                // 'Suplentes' =>  $conn->fetchOne("
+                //     select 
+                //         count(*) 
+                //     from 
+                //         registration r 
+                //     where 
+                //         r.opportunity_id 
+                //     in (
+                //         select 
+                //             o.id 
+                //         from 
+                //             opportunity o
+                //         join 
+                //             opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                //         WHERE 
+                //             o.parent_id = {$values['id']}
+                //     )  and 
+                //     r.status = 8
+                // "),
+                // 'Não selecionadas' =>  $conn->fetchOne("
+                //     select 
+                //         count(*) 
+                //     from 
+                //         registration r 
+                //     where 
+                //         r.opportunity_id 
+                //     in (
+                //         select 
+                //             o.id 
+                //         from 
+                //             opportunity o
+                //         join 
+                //             opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                //         WHERE 
+                //             o.parent_id = {$values['id']}
+                //     )  and 
+                //     r.status = 3
+                // "),
+                // 'Inválidas' =>  $conn->fetchOne("
+                //     select 
+                //         count(*) 
+                //     from 
+                //         registration r 
+                //     where 
+                //         r.opportunity_id 
+                //     in (
+                //         select 
+                //             o.id 
+                //         from 
+                //             opportunity o
+                //         join 
+                //             opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                //         WHERE 
+                //             o.parent_id = {$values['id']}
+                //     )  and 
+                //     r.status = 2
+                // ")
             ];
+        }
+
+        $results = $conn->fetchAll("
+            select 
+                id, name 
+            from 
+                opportunity o 
+            where 
+                o.status > 0 and 
+                o.parent_id is null AND
+                o.object_type = 'MapasCulturais\Entities\Project' AND
+                o.object_id in (1274,1278)
+            order by o.name
+        ");
+
+        $inscricoes_por_oportunidade_paulo_gustavo = [];
+        foreach($results as $values) {
+            $inscricoes_por_oportunidade_paulo_gustavo["#{$values['id']} -- ". $values['name']] = [
+                'Rascunho' =>  $conn->fetchOne("
+                    select 
+                        count(*) 
+                    from 
+                        registration r
+                    where 
+                        r.opportunity_id = {$values['id']}
+                    and r.status = 0
+                "),
+                'Enviadas' =>  $conn->fetchOne("
+                    select 
+                        count(*) 
+                    from 
+                        registration r
+                    where 
+                        r.opportunity_id = {$values['id']}
+                    and r.status > 0
+                "),
+                'Selecionadas' =>  $conn->fetchOne("
+                    select 
+                        count(*) 
+                    from 
+                        registration r 
+                    where 
+                        r.opportunity_id 
+                    in (
+                        select 
+                            o.id 
+                        from 
+                            opportunity o
+                        join 
+                            opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                        WHERE 
+                            o.parent_id = {$values['id']}
+                    )  and 
+                    r.status = 10
+                "),
+                // 'Suplentes' =>  $conn->fetchOne("
+                //     select 
+                //         count(*) 
+                //     from 
+                //         registration r 
+                //     where 
+                //         r.opportunity_id 
+                //     in (
+                //         select 
+                //             o.id 
+                //         from 
+                //             opportunity o
+                //         join 
+                //             opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                //         WHERE 
+                //             o.parent_id = {$values['id']}
+                //     )  and 
+                //     r.status = 8
+                // "),
+                // 'Não selecionadas' =>  $conn->fetchOne("
+                //     select 
+                //         count(*) 
+                //     from 
+                //         registration r 
+                //     where 
+                //         r.opportunity_id 
+                //     in (
+                //         select 
+                //             o.id 
+                //         from 
+                //             opportunity o
+                //         join 
+                //             opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                //         WHERE 
+                //             o.parent_id = {$values['id']}
+                //     )  and 
+                //     r.status = 3
+                // "),
+                // 'Inválidas' =>  $conn->fetchOne("
+                //     select 
+                //         count(*) 
+                //     from 
+                //         registration r 
+                //     where 
+                //         r.opportunity_id 
+                //     in (
+                //         select 
+                //             o.id 
+                //         from 
+                //             opportunity o
+                //         join 
+                //             opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                //         WHERE 
+                //             o.parent_id = {$values['id']}
+                //     )  and 
+                //     r.status = 2
+                // ")
+            ];
+        }
+        
+
+        $sem_inscricao_enviada = [];
+        foreach($results as $values) {
+            $r = $conn->fetchOne("
+                select 
+                    count(*) 
+                from 
+                    registration r
+                where 
+                    r.opportunity_id = {$values['id']}
+                and r.status > 0
+            ");
+
+            if($r == 0) {
+                $sem_inscricao_enviada["#{$values['id']} -- ". $values['name']] = $r;
+            }
+           
         }
         $_data = [
             'OPORTUNIDADES',
             // 'Total de oportunidades' => $total_oportunidades[0],
             'Total de oportunidades publicadas' => $total_oportunidades_publicados[0],
+            'Total de oportunidades oficiais' => $total_oportunidades_oficiais[0],
             'Total de oportunidades rascunho' => $total_oportunidades_rascunho[0],
             'Total de oportunidades lixeira' => $total_oportunidades_lixeira[0],
             'Total de oportunidades arquivados' => $total_oportunidades_arquivado[0],
             'Total de oportunidades por área de interesse' => $total_oportunidade_por_area_atuacao,
+            'Oportunidades sem inscrições enviadas' => $sem_inscricao_enviada,
             'ESPAÇOS',
             // 'Total de espacos' => $total_espacos[0],
             'Total de espacos publicados' => $total_espacos_publicados[0],
+            'Total de espacos oficiais' => $total_espacos_oficiais[0],
             'Total de espacos rascunho' => $total_espacos_rascunho[0],
             'Total de espacos lixeira' => $total_espacos_lixeira[0],
             'Total de espacos arquivados' => $total_espacos_arquivado[0],
@@ -694,6 +833,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
             'PROJETOS',
             // 'Total de projetos' => $total_projetos[0],
             'Total de projetos publicados' => $total_projetos_publicados[0],
+            'Total de projetos oficiais' => $total_projetos_oficiais[0],
             'Total de projetos rascunho' => $total_projetos_rascunho[0],
             'Total de projetos lixeira' => $total_projetos_lixeira[0],
             'Total de projetos arquivados' => $total_projetos_arquivado[0],
@@ -701,12 +841,14 @@ class Controller extends \MapasCulturais\Controllers\EntityController
             'Total de inscrições enviadas' => $total_inscricoes_enviadas[0],
             'Total de inscrições rascunho' => $total_inscricoes_rascunho[0],
             'Total de inscrições selecionadas' => $total_inscricoes_selecionadas[0],
-            'Total de inscrições não selecionadas' => $total_inscricoes_nao_selecionadas[0],
-            'Total de inscrições inválidas' => $total_inscricoes_nao_invalidas[0],
-            'Total de inscrições suplente' => $total_inscricoes_nao_suplente[0],
+            // 'Total de inscrições não selecionadas' => $total_inscricoes_nao_selecionadas[0],
+            // 'Total de inscrições inválidas' => $total_inscricoes_nao_invalidas[0],
+            // 'Total de inscrições suplente' => $total_inscricoes_nao_suplente[0],
             'Inscrições por oportunidade' => $inscricoes_por_oportunidade,
+            'Inscrições por oportunidade PAULO GUSTAVO' => $inscricoes_por_oportunidade_paulo_gustavo,
             'AGENTES',
             'Total de agentes publicados' => $total_agentes[0],
+            'Total de agentes oficiais' => $total_agentes_oficiais[0],
             'Total de agentes COM inscrições' => $total_agentes_inscritos_em_editais[0],
             'Total de agentes SEM inscrições' => $total_agentes_nunca_inscritos_em_editais[0],
             'Total de agentes CONTEMPLADOS em algum edital' => $total_agentes_contemplados_em_editais[0],
