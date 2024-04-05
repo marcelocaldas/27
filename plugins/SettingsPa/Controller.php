@@ -14,6 +14,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
 
     public function GET_querys()
     {
+
         $this->requireAuthentication();
         
         $app = App::i();
@@ -384,7 +385,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     agent_meta am2 
                 where 
                     am2.key = 'cpf' and 
-                    am2.value is null or trim(am2.value) = ''
+                    (am2.value is null or trim(am2.value) = '')
             ) and 
             A.status > 0
         ");
@@ -406,8 +407,8 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                 from 
                     agent_meta am2 
                 where 
-                    am2.key = 'cnpj' and 
-                    am2.value is null or trim(am2.value) = ''
+                    (am2.key = 'cnpj') and 
+                   ( am2.value is null or trim(am2.value) = '')
             ) and 
             A.status > 0
         ");
@@ -1257,4 +1258,561 @@ class Controller extends \MapasCulturais\Controllers\EntityController
 
         dump($_data);
     }
+
+    public function buildQuery($values, $wheres = [], $joins = [])
+    {
+        $showPquery = $values['showQuery'] ?? null;
+        $select = $values['select'] ?? "count(distinct(id))";
+        $from = $values['from'];
+        $group = $values['group'] ?: "";
+
+        if (($join = $values['join'] ?? []) || $joins) {
+            $where = array_merge($join, $joins);
+            $join = implode("\n                    ", $join);
+            $join = "{$join}";
+        }
+
+        if (($where = $values['where'] ?? []) || $wheres) {
+            $where = array_merge($where, $wheres);
+            $where = implode(") AND (", $where);
+            $where = "({$where})";
+        }
+        
+        $join = $join ?: "";
+        $where = $where ?: "";
+
+
+        $sql = "
+                SELECT 
+                    {$select}
+                FROM
+                    {$from}
+                    {$join}
+                WHERE
+                    {$where}
+                    {$group}
+            ";
+        
+        if($showPquery) {
+            dump($sql);
+            exit;
+        }
+
+        return $sql;
+    }
+
+
+    public function GET_querysv2()
+    {
+        $this->requireAuthentication();
+
+        $app = App::i();
+
+        if (!$app->user->is('admin')) {
+            return;
+        }
+
+        $em = $app->em;
+        $conn = $em->getConnection();
+
+        $sessions = [
+            "Agentes" => [
+                [
+                    'label' => 'Total de usuários',
+                    'select' => "count(distinct(u.id))",
+                    'from' => "usr u",
+                    'join' => [
+                        'join agent a on a.id = u.profile_id'
+                    ],
+                    'where' => [
+                        'u.status > 0',
+                    ],
+                ],
+                [
+                    // Existem agentes coletivos contemplados editais e agentes em rascunho contemplados em editais. Por isso o WHERE esta como esta
+                    'label' => 'Total de agentes publicados',
+                    'from' => "agent a",
+                    'where' => [
+                        'a.status > 0',
+                    ],
+                ],
+                [
+                    'label' => 'Total de agentes individuais',
+                    'from' => "agent a",
+                    'where' => [
+                        'a.type = 1', 
+                        'a.status > 0'
+                    ],
+                ],
+                [
+                    'label' => 'Total de agentes coletivos',
+                    'from' => "agent a",
+                    'where' => [
+                        'a.type = 2', 
+                        'a.status > 0'
+                    ],
+                ],
+                [
+                    'select' => 'count(distinct(a.id)) as total',
+                    'label' => 'Total de agentes individuais com CPF',
+                    'from' => "agent a",
+                    'join' => [
+                        "join agent_meta am on am.object_id = a.id and am.key = 'cpf' and trim(am.value) <> ''"
+                    ],
+                    'where' => [
+                        'a.status > 0',
+                        'a.type = 1'
+                    ],
+                ],
+                [
+                    'select' => 'count(distinct(a.id)) as total',
+                    'label' => "Total de agentes individuais com CNPJ (MEI)",
+                    'from' => "agent a",
+                    'join' => [
+                        "join agent_meta cnpj on cnpj.object_id = a.id and cnpj.key = 'cnpj' and trim(cnpj.value) <> ''"
+                    ],
+                    'where' => [
+                        'a.status > 0',
+                        'a.type = 1'
+                    ],
+                ],
+                [
+                    'label' => 'Total de agentes coletivos com CNPJ',
+                    'select' => 'count(distinct(a.id)) as total',
+                    'from' => "agent a",
+                    'where' => [
+                        "a.id in (select cnpj.object_id from agent_meta cnpj where cnpj.key = 'cnpj' and trim(cnpj.value) <> '')",
+                        'a.status > 0',
+                        'a.type = 2'
+                    ],
+                ],
+                [
+                    'label' => 'Total de agentes coletivos sem CNPJ',
+                    'from' => "agent a",
+                    'where' => [
+                        "a.id not in (select cnpj.object_id from agent_meta cnpj where cnpj.key = 'cnpj' and trim(cnpj.value) <> '')",
+                        'a.type = 2', 
+                        'a.status > 0'
+                    ],
+                ],
+                [
+                    'label' => 'Total de agentes COM inscrições enviadas',
+                    'from' => "agent a",
+                    'where' => [
+                        'a.id in (select r.agent_id from registration r where status > 0)',
+                        'a.type = 1'
+                    ],
+                ],
+                [
+                    'label' => 'Total de agentes CONTEMPLADOS em algum edital',
+                    'from' => "agent a",
+                    'where' => [
+                        "a.id in (
+                            select agent_id from registration where opportunity_id in (
+                                select object_id from opportunity_meta where key = 'isLastPhase'
+                            )  and status = 10
+                        )",
+                        'a.type = 1'
+                    ],
+                ],
+                [
+                    'label' => 'Total de agentes NÃO CONTEMPLADOS em editais',
+                    'from' => "agent a",
+                    'where' => [
+                        "a.id not in (
+                            select agent_id from registration where opportunity_id in (
+                                select object_id from opportunity_meta where key = 'isLastPhase'
+                            )  and status = 10
+                        )",
+                        'a.type = 1',
+                        'a.status > 0'
+                    ],
+                ],
+                [
+                    'label' => 'Total de agentes com inscrições enviadas mas NÃO CONTEMPLADOS em editais',
+                    'from' => "agent a",
+                    'where' => [
+                        "a.id not in (
+                            select agent_id from registration where opportunity_id in (
+                                select object_id from opportunity_meta where key = 'isLastPhase'
+                            )  and status = 10
+                        )",
+                        'a.id in (select r.agent_id from registration r where status > 0)',
+                        'type = 1'
+                    ],
+                ],
+                [
+                    'label' => 'Total de agentes por comunidade tradicional',
+                    'select' => "
+                        CASE 
+                            WHEN am.value IS NULL OR am.value = '' THEN 'Não Informado'
+                            else am.value
+                        END AS alias,
+                        count(*) as total
+                    ",
+                    'from' => "agent a",
+                    'join' => [
+                        "join agent_meta am on am.object_id = a.id and am.key = 'comunidadesTradicional'"
+                    ],
+                    'where' => [
+                        'a.status > 0'
+                    ],
+                    'group' => "group by alias",
+                    'fetch' => "fetchAll"
+                ],
+                [
+                    'label' => 'Total de agentes inviduais por area de atuação',
+                    'select' => "
+                        t.term as alias,
+                        count(*) as total
+                    ",
+                    'from' => "term_relation tr",
+                    'join' => [
+                        "join term t on t.id = tr.term_id",
+                        "join agent a on a.id = tr.object_id and a.status > 0 and a.type = 1"
+                    ],
+                    'where' => [
+                        "tr.object_type = 'MapasCulturais\Entities\Agent'",
+                        "t.taxonomy = 'area'",
+                    ],
+                    'group' => "group by alias",
+                    'fetch' => "fetchAll"
+                ],
+                [
+                    'label' => 'Total de agentes coletivos por area de atuação',
+                    'select' => "
+                        t.term as alias,
+                        count(*) as total
+                    ",
+                    'from' => "term_relation tr",
+                    'join' => [
+                        "join term t on t.id = tr.term_id",
+                        "join agent a on a.id = tr.object_id and a.status > 0 and a.type = 2"
+                    ],
+                    'where' => [
+                        "tr.object_type = 'MapasCulturais\Entities\Agent'",
+                        "t.taxonomy = 'area'",
+                    ],
+                    'group' => "group by alias",
+                    'fetch' => "fetchAll"
+                ],
+                [
+                    'label' => 'Total de agentes individual por segmento cultural',
+                    'select' => "
+                        t.term as alias,
+                        count(*) as total
+                    ",
+                    'from' => "term_relation tr",
+                    'join' => [
+                        "join term t on t.id = tr.term_id",
+                        "join agent a on a.id = tr.object_id and a.status > 0 and a.type = 1"
+                    ],
+                    'where' => [
+                        "tr.object_type = 'MapasCulturais\Entities\Agent'",
+                        "t.taxonomy = 'segmento'",
+                    ],
+                    'group' => "group by alias",
+                    'fetch' => "fetchAll"
+                ],
+                [
+                    'label' => 'Total de agentes por raça',
+                    'select' => "
+                        CASE 
+                            WHEN am.value IS NULL OR am.value = '' THEN 'Não Informado'
+                            else am.value
+                        END AS alias,
+                        count(*) as total
+                    ",
+                    'from' => "agent a",
+                    'join' => [
+                        "join agent_meta am on am.object_id = a.id and am.key = 'raca'"
+                    ],
+                    'where' => [
+                        'a.status > 0'
+                    ],
+                    'group' => "group by alias",
+                    'fetch' => "fetchAll"
+                ],
+                [
+                    'label' => 'Total de agentes por genero',
+                    'select' => "
+                        CASE 
+                            WHEN am.value IS NULL OR am.value = '' THEN 'Não Informado'
+                            else am.value
+                        END AS alias,
+                        count(*) as total
+                    ",
+                    'from' => "agent a",
+                    'join' => [
+                        "join agent_meta am on am.object_id = a.id and am.key = 'genero'"
+                    ],
+                    'where' => [
+                        'a.status > 0'
+                    ],
+                    'group' => "group by alias",
+                    'fetch' => "fetchAll"
+                ],
+                [
+                    'label' => 'Total de agentes por escolaridade',
+                    'select' => "
+                        CASE 
+                            WHEN am.value IS NULL OR am.value = '' THEN 'Não Informado'
+                            else am.value
+                        END AS alias,
+                        count(*) as total
+                    ",
+                    'from' => "agent a",
+                    'join' => [
+                        "join agent_meta am on am.object_id = a.id and am.key = 'escolaridade'"
+                    ],
+                    'where' => [
+                        'a.status > 0'
+                    ],
+                    'group' => "group by alias",
+                    'fetch' => "fetchAll"
+                ],
+                [
+                    'label' => 'Total de agentes individuais por RI',
+                    'select' => "
+                        CASE 
+                            WHEN am.value IS NULL OR am.value = '' THEN 'Não Informado'
+                            else am.value
+                        END AS alias,
+                        count(*) as total
+                    ",
+                    'from' => "agent a",
+                    'join' => [
+                        "join agent_meta am on am.object_id = a.id and am.key = 'geoRI'"
+                    ],
+                    'where' => [
+                        'a.status > 0',
+                        'a.type = 1'
+                    ],
+                    'group' => "group by alias",
+                    'fetch' => "fetchAll"
+                ],
+            ]
+        ];
+
+        $sessions = [
+            "Inscrições" => [
+                [
+                    'label' => "Total de inscrições enviadas",
+                    'select' => "count(distinct(r.id))",
+                    'from' => "registration r",
+                    'join' => [
+                        'join agent a on a.id = r.agent_id'  
+                    ],
+                    'where' => [
+                        "r.opportunity_id in (
+                            select 
+                                distinct o.id 
+                            from 
+                                opportunity o 
+                            join 
+                                seal_relation sr on sr.object_id = o.id and sr.object_type = 'MapasCulturais\Entities\Opportunity'
+                            where 
+                                o.parent_id is null and 
+                                o.status > 0 and
+                                sr.seal_id in (1,2,3,4)
+                        )",
+                        "r.status > 0"
+                    ],
+                ],
+                [
+                    'label' => "Total de inscrições rascunho",
+                    'select' => "count(distinct(r.id))",
+                    'from' => "registration r",
+                    'join' => [
+                        'join agent a on a.id = r.agent_id'  
+                    ],
+                    'where' => [
+                        "r.opportunity_id in (
+                            select 
+                                distinct o.id 
+                            from 
+                                opportunity o 
+                            join 
+                                seal_relation sr on sr.object_id = o.id and sr.object_type = 'MapasCulturais\Entities\Opportunity'
+                            where 
+                                o.parent_id is null and 
+                                o.status > 0 and
+                                sr.seal_id in (1,2,3,4)
+                        )",
+                        "r.status = 0"
+                    ],
+                ],
+                [
+                    'label' => "Total de inscrições pendente",
+                    'select' => "count(distinct(r.id))",
+                    'from' => "registration r",
+                    'join' => [
+                        'join agent a on a.id = r.agent_id'  
+                    ],
+                    'where' => [
+                        "r.opportunity_id in (
+                            select 
+                                distinct o.id 
+                            from 
+                                opportunity o 
+                            join 
+                                seal_relation sr on sr.object_id = o.id and sr.object_type = 'MapasCulturais\Entities\Opportunity'
+                            where 
+                                o.parent_id is null and 
+                                o.status > 0 and
+                                sr.seal_id in (1,2,3,4)
+                        )",
+                        "r.status = 1"
+                    ],
+                ],
+                [
+                    'label' => "Total de inscrições selecionadas",
+                    'select' => "count(distinct(r.id))",
+                    'from' => "registration r",
+                    'join' => [
+                        'join agent a on a.id = r.agent_id'
+                    ],
+                    'where' => [
+                       "r.opportunity_id in 
+                        (
+                            select o.id 
+                            from 
+                                opportunity o
+                            join 
+                                opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                            where
+                                o.parent_id in (
+                                    select 
+                                        sr.object_id 
+                                    from 
+                                        seal_relation sr 
+                                    where 
+                                        sr.seal_id in (1,2,3,4) and sr.object_type = 'MapasCulturais\Entities\Opportunity'
+                                )
+                        )",
+                        "r.status = 10"
+                    ],
+                ],
+                [
+                    'label' => "Total de inscrições não selecionadas",
+                    'select' => "count(distinct(number))",
+                    'from' => "registration r",
+                    'join' => [
+                        'join agent a on a.id = r.agent_id',
+                        "join seal_relation sr on sr.object_id = r.opportunity_id and sr.object_type = 'MapasCulturais\Entities\Opportunity'"
+                    ],
+                    'where' => [
+                        "r.status = 3",
+                        "sr.seal_id in (1,2,3,4)"
+                    ],
+                ],
+            ],
+        ];
+      
+       
+        $result = [];
+        foreach ($sessions as $session => $queries) {
+            $result[] = $session;
+            foreach ($queries as $values) {
+                $fetch = $values['fetch'] ?? "fetchOne";
+                $sql = $this->buildQuery($values);
+
+                $label = $values['label'];
+
+                if($fetch == "fetchAll") {
+                    $results = $conn->$fetch($sql);
+                    
+                    foreach ($results as $_key => $_value) {
+                        $result[$label][$_value['alias']] = $_value['total'];
+                    }
+                }else {
+                    $result[$label] = $conn->$fetch($sql);
+                }
+            }
+        }
+
+        // $result[1]['Total de agentes por faixa de idade'] = $this->agentByAgeGroup();
+
+        $ris = $conn->fetchAll("SELECT cod,name FROM geo_division WHERE type = 'RI'");
+
+        $ri_results = [];
+        foreach($ris as $ri) {
+            $ri_result = [];
+            foreach ($sessions as $session => $queries) {
+                $ri_result[] = $session;
+                foreach ($queries as $values) {
+                    $fetch = $values['fetch'] ?? "fetchOne";
+                    $sql = $this->buildQuery($values, wheres:["a.id in(select object_id from agent_meta where key = 'geoRI' and value = '{$ri['cod']}')"]);
+    
+                    $label = $values['label'];
+    
+                    if($fetch == "fetchAll") {
+                        $results = $conn->$fetch($sql);
+                        
+                        foreach ($results as $_key => $_value) {
+                            $ri_result[$label][$_value['alias']] = $_value['total'];
+                        }
+                    }else {
+                        $app->log->debug($sql);
+                        $ri_result[$label] = $conn->$fetch($sql);
+                    }
+                }
+            }
+            $ri_results[$ri['name']] = $ri_result;
+        }
+
+        dump($result);
+
+        echo '<h1>Segmentação por RI</h1>';
+        dump($ri_results);
+    }
+
+    public function agentByAgeGroup()
+    {
+        $app = App::i();
+        $em = $app->em;
+        $conn = $em->getConnection();
+
+        $results = $conn->fetchAll("
+            SELECT 
+                CONCAT(FLOOR((idade::numeric / 10)) * 10, ' - ', FLOOR((idade::numeric / 10) + 1) * 10 - 1) AS faixa_idade,
+                COUNT(*) AS total
+            FROM (
+                SELECT 
+                    CASE 
+                        WHEN EXTRACT(YEAR FROM age(current_date, am.value::date)) < 1 THEN '0' 
+                        WHEN EXTRACT(YEAR FROM age(current_date, am.value::date)) > 100 THEN '100' 
+                        ELSE EXTRACT(YEAR FROM age(current_date, am.value::date))::text 
+                    END AS idade
+                FROM 
+                    agent_meta am 
+                    JOIN agent a ON am.object_id = a.id AND a.status > 0
+                    
+                WHERE 
+                    am.key = 'dataDeNascimento' AND
+                    am.value <> '' AND
+                    a.type = 1 AND
+                    EXTRACT(YEAR FROM age(current_date, am.value::date)) >= 18 AND
+                    EXTRACT(YEAR FROM age(current_date, am.value::date)) <= 110
+            ) AS subquery
+            GROUP BY 
+                CONCAT(FLOOR((idade::numeric / 10)) * 10, ' - ', FLOOR((idade::numeric / 10) + 1) * 10 - 1)
+            ORDER BY
+                CASE 
+                    WHEN CONCAT(FLOOR((idade::numeric / 10)) * 10, ' - ', FLOOR((idade::numeric / 10) + 1) * 10 - 1) = '100 - 109' THEN 1
+                    ELSE 0
+                END,
+                CONCAT(FLOOR((idade::numeric / 10)) * 10, ' - ', FLOOR((idade::numeric / 10) + 1) * 10 - 1);
+    
+        ");
+
+        $result = [];
+        foreach ($results as $_key => $_value) {
+            $result[$_value['faixa_idade']] = $_value['total'];
+        }
+
+        return $result;
+    }
+    
+    
 }
