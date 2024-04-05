@@ -100,62 +100,39 @@ class Controller extends \MapasCulturais\Controllers\EntityController
         $total_agentes_idoso = $conn->fetchColumn("select count(*) from agent_meta am  join agent a on a.id = am.object_id where am.key = 'idoso' and value <> '0' and a.status > 0");
         $outras_comunidades_tradicionais = $conn->fetchColumn("select count(*) as total from agent_meta am where am.key = 'comunidadesTradicionalOutros'");
 
+         ####### INSCRICOES ########
+
         // Total de inscrições suplente
         $total_inscricoes_nao_suplente = $conn->fetchColumn("
             select 
-                count(*) 
+                count(distinct number) 
             from 
                 registration r 
             where 
-                r.opportunity_id 
-            in (
-                select 
-                    o.id 
-                from 
-                    opportunity o
-                join 
-                    opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
-            )  and 
             r.status = 8
         ");
-
 
         // Total de inscrições inválidas
         $total_inscricoes_nao_invalidas = $conn->fetchColumn("
             select 
-                count(*) 
+                count(distinct number) 
             from 
                 registration r 
             where 
-                r.opportunity_id 
-            in (
-                select 
-                    o.id 
-                from 
-                    opportunity o
-                join 
-                    opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
-            )  and 
             r.status = 2
         ");
 
         // Total de inscrições não selecionadas
         $total_inscricoes_nao_selecionadas = $conn->fetchColumn("
             select 
-                count(*) 
+                count(distinct number) 
             from 
                 registration r 
+            join 
+                seal_relation sr on sr.object_id = r.opportunity_id and sr.object_type = 'MapasCulturais\Entities\Opportunity'
             where 
-                r.opportunity_id 
-            in (
-                select 
-                    o.id 
-                from 
-                    opportunity o
-                join 
-                    opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
-            )  and 
-            r.status = 3
+            r.status = 3 and
+            sr.seal_id in (1,2,3,4)
         ");
 
         // Total de inscrições enviadas
@@ -167,14 +144,39 @@ class Controller extends \MapasCulturais\Controllers\EntityController
             where 
                 r.opportunity_id in (
                     select 
+                        distinct o.id 
+                    from 
+                        opportunity o 
+                    join 
+                        seal_relation sr on sr.object_id = o.id and sr.object_type = 'MapasCulturais\Entities\Opportunity'
+                    where 
+                        o.parent_id is null and 
+                        o.status > 0 and
+                        sr.seal_id in (1,2,3,4)
+                )
+            and r.status > 0
+        ");
+
+         // Total de inscrições rascunho
+         $total_inscricoes_pendentes = $conn->fetchColumn("
+            select 
+                count(*) 
+            from 
+                registration r
+            where 
+                r.opportunity_id in (
+                    select 
                         o.id 
                     from 
                         opportunity o 
+                    join 
+                        seal_relation sr on sr.object_id = o.id and sr.object_type = 'MapasCulturais\Entities\Opportunity'
                     where 
                         o.parent_id is null and 
-                        o.status > 0
+                        o.status > 0 and
+                        sr.seal_id in (1,2,3,4)
                 )
-            and r.status > 0
+            and r.status = 1
         ");
 
         // Total de inscrições rascunho
@@ -189,9 +191,12 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                         o.id 
                     from 
                         opportunity o 
+                    join 
+                        seal_relation sr on sr.object_id = o.id and sr.object_type = 'MapasCulturais\Entities\Opportunity'
                     where 
                         o.parent_id is null and 
-                        o.status > 0
+                        o.status > 0 and
+                        sr.seal_id in (1,2,3,4)
                 )
             and r.status = 0
         ");
@@ -205,15 +210,85 @@ class Controller extends \MapasCulturais\Controllers\EntityController
             where 
                 r.opportunity_id 
             in (
-                select 
-                    o.id 
-                from 
-                    opportunity o
-                join 
-                    opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                select o.id 
+            from 
+                opportunity o
+            join 
+                opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+            where
+                o.parent_id in (
+                    select 
+                        sr.object_id 
+                    from 
+                        seal_relation sr 
+                    where 
+                        sr.seal_id 
+                    in 
+                        (1,2,3,4) and sr.object_type = 'MapasCulturais\Entities\Opportunity'
+                )
             )  and 
             r.status = 10
         ");
+
+         // Total de inscrições pendentes
+         $total_inscricoes_pendentes_na_ultima_fase = $conn->fetchColumn("
+            select 
+                count(*) 
+            from 
+                registration r 
+            where 
+                r.opportunity_id 
+            in (
+                select o.id 
+            from 
+                opportunity o
+            join 
+                opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+            where
+                o.parent_id in (
+                    select 
+                        sr.object_id 
+                    from 
+                        seal_relation sr 
+                    where 
+                        sr.seal_id 
+                    in 
+                        (1,2,3,4) and sr.object_type = 'MapasCulturais\Entities\Opportunity'
+                )
+            )  and 
+            r.status = 1
+        ");
+     
+         // Total de inscrições pendentes
+         $total_inscricoes_rascunhos_na_ultima_fase = $conn->fetchColumn("
+            select 
+                count(*) 
+            from 
+                registration r 
+            where 
+                r.opportunity_id 
+            in (
+                select o.id 
+            from 
+                opportunity o
+            join 
+                opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+            where
+                o.parent_id in (
+                    select 
+                        sr.object_id 
+                    from 
+                        seal_relation sr 
+                    where 
+                        sr.seal_id 
+                    in 
+                        (1,2,3,4) and sr.object_type = 'MapasCulturais\Entities\Opportunity'
+                )
+            )  and 
+            r.status = 0
+        ");
+
+        ####### AGENTES########
         
         // Total de agentes NÃO CONTEMPLADOS em editais
         $total_agentes_nao_contemplados_em_editais = $conn->fetchColumn("
@@ -572,12 +647,15 @@ class Controller extends \MapasCulturais\Controllers\EntityController
 
         $results = $conn->fetchAll("
             select 
-                id, name 
+                o.id, o.name 
             from 
                 opportunity o 
+            join 
+                seal_relation sr on sr.object_id = o.id and sr.object_type = 'MapasCulturais\Entities\Opportunity'
             where 
                 o.status > 0 and 
-                o.parent_id is null
+                o.parent_id is null and
+                sr.seal_id in (1,2,3,4)
             order by o.name
         ");
 
@@ -589,6 +667,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                         count(*) 
                     from 
                         registration r
+                    
                     where 
                         r.opportunity_id = {$values['id']}
                     and r.status = 0
@@ -621,63 +700,71 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     )  and 
                     r.status = 10
                 "),
-                // 'Suplentes' =>  $conn->fetchOne("
-                //     select 
-                //         count(*) 
-                //     from 
-                //         registration r 
-                //     where 
-                //         r.opportunity_id 
-                //     in (
-                //         select 
-                //             o.id 
-                //         from 
-                //             opportunity o
-                //         join 
-                //             opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
-                //         WHERE 
-                //             o.parent_id = {$values['id']}
-                //     )  and 
-                //     r.status = 8
-                // "),
-                // 'Não selecionadas' =>  $conn->fetchOne("
-                //     select 
-                //         count(*) 
-                //     from 
-                //         registration r 
-                //     where 
-                //         r.opportunity_id 
-                //     in (
-                //         select 
-                //             o.id 
-                //         from 
-                //             opportunity o
-                //         join 
-                //             opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
-                //         WHERE 
-                //             o.parent_id = {$values['id']}
-                //     )  and 
-                //     r.status = 3
-                // "),
-                // 'Inválidas' =>  $conn->fetchOne("
-                //     select 
-                //         count(*) 
-                //     from 
-                //         registration r 
-                //     where 
-                //         r.opportunity_id 
-                //     in (
-                //         select 
-                //             o.id 
-                //         from 
-                //             opportunity o
-                //         join 
-                //             opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
-                //         WHERE 
-                //             o.parent_id = {$values['id']}
-                //     )  and 
-                //     r.status = 2
-                // ")
+                'Suplentes' =>  $conn->fetchOne("
+                    select 
+                        count(distinct number) 
+                    from 
+                        registration r 
+                    where 
+                        r.opportunity_id = {$values['id']} and 
+                        r.status = 8
+                "),
+                'Não selecionadas' =>  $conn->fetchOne("
+                    select 
+                        count(distinct number) 
+                    from 
+                        registration r 
+                    where 
+                        r.opportunity_id = {$values['id']} and 
+                        r.status = 3
+                "),
+                'Inválidas' =>  $conn->fetchOne("
+                select 
+                    count(distinct number) 
+                from 
+                    registration r 
+                where 
+                    r.opportunity_id = {$values['id']} and 
+                    r.status = 2
+                "),
+                'Pendentes na última fase' =>  $conn->fetchOne("
+                    select 
+                        count(*) 
+                    from 
+                        registration r 
+                    where 
+                        r.opportunity_id 
+                    in (
+                        select 
+                            o.id 
+                        from 
+                            opportunity o
+                        join 
+                            opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                        WHERE 
+                            o.parent_id = {$values['id']}
+                    )  and 
+                    r.status = 1
+                "),
+                'Rascunhos na última fase' =>  $conn->fetchOne("
+                select 
+                    count(*) 
+                from 
+                    registration r 
+                where 
+                    r.opportunity_id 
+                in (
+                    select 
+                        o.id 
+                    from 
+                        opportunity o
+                    join 
+                        opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                    WHERE 
+                        o.parent_id = {$values['id']}
+                )  and 
+                r.status = 0
+            "),
             ];
         }
 
@@ -693,6 +780,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                 o.object_id in (1274,1278)
             order by o.name
         ");
+        
 
         $inscricoes_por_oportunidade_paulo_gustavo = [];
         foreach($results as $values) {
@@ -734,66 +822,103 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     )  and 
                     r.status = 10
                 "),
-                // 'Suplentes' =>  $conn->fetchOne("
-                //     select 
-                //         count(*) 
-                //     from 
-                //         registration r 
-                //     where 
-                //         r.opportunity_id 
-                //     in (
-                //         select 
-                //             o.id 
-                //         from 
-                //             opportunity o
-                //         join 
-                //             opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
-                //         WHERE 
-                //             o.parent_id = {$values['id']}
-                //     )  and 
-                //     r.status = 8
-                // "),
-                // 'Não selecionadas' =>  $conn->fetchOne("
-                //     select 
-                //         count(*) 
-                //     from 
-                //         registration r 
-                //     where 
-                //         r.opportunity_id 
-                //     in (
-                //         select 
-                //             o.id 
-                //         from 
-                //             opportunity o
-                //         join 
-                //             opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
-                //         WHERE 
-                //             o.parent_id = {$values['id']}
-                //     )  and 
-                //     r.status = 3
-                // "),
-                // 'Inválidas' =>  $conn->fetchOne("
-                //     select 
-                //         count(*) 
-                //     from 
-                //         registration r 
-                //     where 
-                //         r.opportunity_id 
-                //     in (
-                //         select 
-                //             o.id 
-                //         from 
-                //             opportunity o
-                //         join 
-                //             opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
-                //         WHERE 
-                //             o.parent_id = {$values['id']}
-                //     )  and 
-                //     r.status = 2
-                // ")
+                'Suplentes' =>  $conn->fetchOne("
+                    select 
+                        count(*) 
+                    from 
+                        registration r 
+                    where 
+                        r.opportunity_id 
+                    in (
+                        select 
+                            o.id 
+                        from 
+                            opportunity o
+                        join 
+                            opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                        WHERE 
+                            o.parent_id = {$values['id']}
+                    )  and 
+                    r.status = 8
+                "),
+                'Não selecionadas' =>  $conn->fetchOne("
+                    select 
+                        count(*) 
+                    from 
+                        registration r 
+                    where 
+                        r.opportunity_id 
+                    in (
+                        select 
+                            o.id 
+                        from 
+                            opportunity o
+                        join 
+                            opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                        WHERE 
+                            o.parent_id = {$values['id']}
+                    )  and 
+                    r.status = 3
+                "),
+                'Inválidas' =>  $conn->fetchOne("
+                    select 
+                        count(*) 
+                    from 
+                        registration r 
+                    where 
+                        r.opportunity_id 
+                    in (
+                        select 
+                            o.id 
+                        from 
+                            opportunity o
+                        join 
+                            opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                        WHERE 
+                            o.parent_id = {$values['id']}
+                    )  and 
+                    r.status = 2
+                "),
+                'Pendente na última fase' =>  $conn->fetchOne("
+                    select 
+                        count(*) 
+                    from 
+                        registration r 
+                    where 
+                        r.opportunity_id 
+                    in (
+                        select 
+                            o.id 
+                        from 
+                            opportunity o
+                        join 
+                            opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                        WHERE 
+                            o.parent_id = {$values['id']}
+                    )  and 
+                    r.status = 1
+                "),
+                'Rascunho na última fase' =>  $conn->fetchOne("
+                    select 
+                        count(*) 
+                    from 
+                        registration r 
+                    where 
+                        r.opportunity_id 
+                    in (
+                        select 
+                            o.id 
+                        from 
+                            opportunity o
+                        join 
+                            opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                        WHERE 
+                            o.parent_id = {$values['id']}
+                    )  and 
+                    r.status = 0
+                "),
             ];
         }
-        
 
         $sem_inscricao_enviada = [];
         foreach($results as $values) {
@@ -812,6 +937,203 @@ class Controller extends \MapasCulturais\Controllers\EntityController
             }
            
         }
+
+        // Total de inscrições suplente
+        $total_inscricoes_suplente_paulo_gustavo = $conn->fetchColumn("
+            select 
+                count(*) 
+            from 
+                registration r 
+            where 
+                r.opportunity_id 
+            in (
+                select 
+                    o.id 
+                from 
+                    opportunity o
+                join 
+                    opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                where 
+                    o.object_type = 'MapasCulturais\Entities\Project' AND
+                    o.object_id in (1274,1278)
+            )  and 
+            r.status = 8
+        ");
+
+
+        // Total de inscrições inválidas
+        $total_inscricoes_invalidas_paulo_gustavo = $conn->fetchColumn("
+            select 
+                count(*) 
+            from 
+                registration r 
+            where 
+                r.opportunity_id 
+            in (
+                select 
+                    o.id 
+                from 
+                    opportunity o
+                join 
+                    opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                where 
+                    o.object_type = 'MapasCulturais\Entities\Project' AND
+                    o.object_id in (1274,1278)
+            )  and 
+            r.status = 2
+        ");
+
+        // Total de inscrições não selecionadas
+        $total_inscricoes_nao_selecionadas_paulo_gustavo = $conn->fetchColumn("
+            select 
+                count(*) 
+            from 
+                registration r 
+            where 
+                r.opportunity_id 
+            in (
+                select 
+                    o.id 
+                from 
+                    opportunity o
+                join 
+                    opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                where 
+                    o.object_type = 'MapasCulturais\Entities\Project' AND
+                    o.object_id in (1274,1278)
+            )  and 
+            r.status = 3
+        ");
+
+         // Total de inscrições pendentes
+         $total_inscricoes_paulo_pendentes_paulo_gustavo = $conn->fetchColumn("
+            select 
+                count(*) 
+            from 
+                registration r
+            where 
+                r.opportunity_id in (
+                    select 
+                        o.id 
+                    from 
+                        opportunity o 
+                    where 
+                        o.parent_id is null and 
+                        o.status > 0 AND
+                        o.object_type = 'MapasCulturais\Entities\Project' AND
+                        o.object_id in (1274,1278)
+                )
+            and r.status = 1
+        ");
+
+        // Total de inscrições enviadas
+        $total_inscricoes_enviadas_paulo_gustavo = $conn->fetchColumn("
+            select 
+                count(*) 
+            from 
+                registration r
+            where 
+                r.opportunity_id in (
+                    select 
+                        o.id 
+                    from 
+                        opportunity o 
+                    where 
+                        o.parent_id is null and 
+                        o.status > 0 AND
+                        o.object_type = 'MapasCulturais\Entities\Project' AND
+                        o.object_id in (1274,1278)
+                )
+            and r.status > 0
+        ");
+
+        // Total de inscrições rascunho
+        $total_inscricoes_rascunho_paulo_gustavo = $conn->fetchColumn("
+            select 
+                count(*) 
+            from 
+                registration r
+            where 
+                r.opportunity_id in (
+                    select 
+                        o.id 
+                    from 
+                        opportunity o 
+                    where 
+                        o.parent_id is null and 
+                        o.status > 0 AND
+                        o.object_type = 'MapasCulturais\Entities\Project' AND
+                        o.object_id in (1274,1278)
+                )
+            and r.status = 0
+        ");
+
+        // Total de inscrições selecionadas
+        $total_inscricoes_selecionadas_paulo_gustavo = $conn->fetchColumn("
+            select 
+                count(*) 
+            from 
+                registration r 
+            where 
+                r.opportunity_id 
+            in (
+                select 
+                    o.id 
+                from 
+                    opportunity o
+                join 
+                    opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                where 
+                    o.object_type = 'MapasCulturais\Entities\Project' AND
+                    o.object_id in (1274,1278)
+            )  and 
+            r.status = 10
+        ");
+
+        // Total de inscrições rascunhos na última fase
+        $total_inscricoes_rascunhos_na_última_fase_paulo_gustavo = $conn->fetchColumn("
+            select 
+                count(*) 
+            from 
+                registration r 
+            where 
+                r.opportunity_id 
+            in (
+                select 
+                    o.id 
+                from 
+                    opportunity o
+                join 
+                    opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                where 
+                    o.object_type = 'MapasCulturais\Entities\Project' AND
+                    o.object_id in (1274,1278)
+            )  and 
+            r.status = 0
+        ");
+
+         // Total de inscrições rascunhos na última fase
+         $total_inscricoes_pendente_na_última_fase_paulo_gustavo = $conn->fetchColumn("
+            select 
+                count(*) 
+            from 
+                registration r 
+            where 
+                r.opportunity_id 
+            in (
+                select 
+                    o.id 
+                from 
+                    opportunity o
+                join 
+                    opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                where 
+                    o.object_type = 'MapasCulturais\Entities\Project' AND
+                    o.object_id in (1274,1278)
+            )  and 
+            r.status = 1
+        ");
+
         $_data = [
             'OPORTUNIDADES',
             // 'Total de oportunidades' => $total_oportunidades[0],
@@ -840,11 +1162,26 @@ class Controller extends \MapasCulturais\Controllers\EntityController
             'INSCRIÇÕES',
             'Total de inscrições enviadas' => $total_inscricoes_enviadas[0],
             'Total de inscrições rascunho' => $total_inscricoes_rascunho[0],
+            'Total de inscrições pendentes' => $total_inscricoes_pendentes[0],
             'Total de inscrições selecionadas' => $total_inscricoes_selecionadas[0],
-            // 'Total de inscrições não selecionadas' => $total_inscricoes_nao_selecionadas[0],
-            // 'Total de inscrições inválidas' => $total_inscricoes_nao_invalidas[0],
-            // 'Total de inscrições suplente' => $total_inscricoes_nao_suplente[0],
+            'Total de inscrições não selecionadas' => $total_inscricoes_nao_selecionadas[0],
+            'Total de inscrições inválidas' => $total_inscricoes_nao_invalidas[0],
+            'Total de inscrições suplente' => $total_inscricoes_nao_suplente[0],
+            'Total de inscricao pendentes na última fase' => $total_inscricoes_pendentes_na_ultima_fase[0],
+            'Total de inscricao rascunhos na última fase' => $total_inscricoes_rascunhos_na_ultima_fase[0],
             'Inscrições por oportunidade' => $inscricoes_por_oportunidade,
+            'INSCRIÇÕES - PAULO GUSTAVO',
+            'Total de inscrições enviadas - PAULO GUSTAVO' => $total_inscricoes_enviadas_paulo_gustavo[0],
+            'Total de inscrições rascunho - PAULO GUSTAVO' => $total_inscricoes_rascunho_paulo_gustavo[0],
+            'Total de inscrições pendente - PAULO GUSTAVO' => $total_inscricoes_paulo_pendentes_paulo_gustavo[0],
+            'Total de inscrições selecionadas - PAULO GUSTAVO' => $total_inscricoes_selecionadas_paulo_gustavo[0],
+
+            'Total de inscrições rascunho na última fase - PAULO GUSTAVO' => $total_inscricoes_rascunhos_na_última_fase_paulo_gustavo[0],
+            'Total de inscrições pendentes na última fase - PAULO GUSTAVO' => $total_inscricoes_pendente_na_última_fase_paulo_gustavo[0],
+
+            'Total de inscrições não selecionadas - PAULO GUSTAVO' => $total_inscricoes_nao_selecionadas_paulo_gustavo[0],
+            'Total de inscrições inválidas - PAULO GUSTAVO' => $total_inscricoes_invalidas_paulo_gustavo[0],
+            'Total de inscrições suplente - PAULO GUSTAVO' => $total_inscricoes_suplente_paulo_gustavo[0],
             'Inscrições por oportunidade PAULO GUSTAVO' => $inscricoes_por_oportunidade_paulo_gustavo,
             'AGENTES',
             'Total de agentes publicados' => $total_agentes[0],
