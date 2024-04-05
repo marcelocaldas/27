@@ -19,4 +19,12 @@ return [
     'homeHeader.thirdBanner' => 'img/banner-educ-patrimonial.png',
     'homeHeader.thirdBannerLink' => 'https://www.secult.pa.gov.br/midias/anexos/78_caderno_de_educacao_patrimonial_site.pdf',
     'homeHeader.thirdDownloadableLink' => true,
+    'app.geoDivisionsHierarchy' => [
+        'pais'              => ['name' => i::__('País'),            'showLayer' => true],
+        'estado'            => ['name' => i::__('Estado'),          'showLayer' => true],
+        'mesorregiao'       => ['name' => i::__('Mesorregião'),     'showLayer' => true],
+        'RI'  => ['name' => i::__('Região de integração'),'showLayer' => true],
+        'microrregiao'      => ['name' => i::__('Microrregião'),    'showLayer' => true],
+        'municipio'         => ['name' => i::__('Município'),       'showLayer' => true],
+    ]
 ];
