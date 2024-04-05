@@ -5,6 +5,7 @@ $config_plugins = [
     'plugins' => [
         'MultipleLocalAuth',
         'AdminLoginAsUser',
+        'CreateGeoDivisions',
 
         'MapasBlame' => [
             'namespace' => 'MapasBlame',
