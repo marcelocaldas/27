@@ -15,4 +15,4 @@
 	url = https://github.com/mapasculturais/plugin-Metabase.git
 [submodule "plugins/CreateGeoDivisions"]
 	path = plugins/CreateGeoDivisions
-	url = git@github.com:mapasculturais/plugin-CreateGeoDivisions.git
+	url = https://github.com/mapasculturais/plugin-CreateGeoDivisions.git
