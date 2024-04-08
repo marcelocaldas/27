@@ -1316,7 +1316,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
         $conn = $em->getConnection();
 
         $sessions = [
-            "Agentes" => [
+            "AGENTES" => [
                 [
                     'label' => 'Total de usuários',
                     'select' => "count(distinct(u.id))",
@@ -1340,7 +1340,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     'label' => 'Total de agentes individuais',
                     'from' => "agent a",
                     'where' => [
-                        'a.type = 1', 
+                        'a.type = 1',
                         'a.status > 0'
                     ],
                 ],
@@ -1348,7 +1348,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     'label' => 'Total de agentes coletivos',
                     'from' => "agent a",
                     'where' => [
-                        'a.type = 2', 
+                        'a.type = 2',
                         'a.status > 0'
                     ],
                 ],
@@ -1391,7 +1391,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     'from' => "agent a",
                     'where' => [
                         "a.id not in (select cnpj.object_id from agent_meta cnpj where cnpj.key = 'cnpj' and trim(cnpj.value) <> '')",
-                        'a.type = 2', 
+                        'a.type = 2',
                         'a.status > 0'
                     ],
                 ],
@@ -1591,17 +1591,18 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     'group' => "group by alias",
                     'fetch' => "fetchAll"
                 ],
-            ]
-        ];
-
-        $sessions = [
-            "Inscrições" => [
+                [
+                    'label' => 'Total de agentes individuais por faixa de idade',
+                    'result' =>  $this->agentByAgeGroup(),
+                ]
+            ],
+            "INSCRIÇÕES" => [
                 [
                     'label' => "Total de inscrições enviadas",
                     'select' => "count(distinct(r.id))",
                     'from' => "registration r",
                     'join' => [
-                        'join agent a on a.id = r.agent_id'  
+                        'join agent a on a.id = r.agent_id'
                     ],
                     'where' => [
                         "r.opportunity_id in (
@@ -1624,7 +1625,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     'select' => "count(distinct(r.id))",
                     'from' => "registration r",
                     'join' => [
-                        'join agent a on a.id = r.agent_id'  
+                        'join agent a on a.id = r.agent_id'
                     ],
                     'where' => [
                         "r.opportunity_id in (
@@ -1647,7 +1648,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     'select' => "count(distinct(r.id))",
                     'from' => "registration r",
                     'join' => [
-                        'join agent a on a.id = r.agent_id'  
+                        'join agent a on a.id = r.agent_id'
                     ],
                     'where' => [
                         "r.opportunity_id in (
@@ -1673,7 +1674,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                         'join agent a on a.id = r.agent_id'
                     ],
                     'where' => [
-                       "r.opportunity_id in 
+                        "r.opportunity_id in 
                         (
                             select o.id 
                             from 
@@ -1695,76 +1696,264 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                 ],
                 [
                     'label' => "Total de inscrições não selecionadas",
-                    'select' => "count(distinct(number))",
+                    'select' => "count(distinct(r.id))",
+                    'from' => "registration r",
+                    'join' => [
+                        'join agent a on a.id = r.agent_id'
+                    ],
+                    'where' => [
+                        "r.opportunity_id in 
+                        (
+                            select o.id 
+                            from 
+                                opportunity o
+                            join 
+                                opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                            where
+                                o.parent_id in (
+                                    select 
+                                        sr.object_id 
+                                    from 
+                                        seal_relation sr 
+                                    where 
+                                        sr.seal_id in (1,2,3,4) and sr.object_type = 'MapasCulturais\Entities\Opportunity'
+                                )
+                        )",
+                        "r.status = 3"
+                    ],
+                ],
+                [
+                    'label' => "Total de inscrições inválidas",
+                    'select' => "count(distinct(r.id))",
+                    'from' => "registration r",
+                    'join' => [
+                        'join agent a on a.id = r.agent_id'
+                    ],
+                    'where' => [
+                        "r.opportunity_id in 
+                        (
+                            select o.id 
+                            from 
+                                opportunity o
+                            join 
+                                opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                            where
+                                o.parent_id in (
+                                    select 
+                                        sr.object_id 
+                                    from 
+                                        seal_relation sr 
+                                    where 
+                                        sr.seal_id in (1,2,3,4) and sr.object_type = 'MapasCulturais\Entities\Opportunity'
+                                )
+                        )",
+                        "r.status = 2"
+                    ],
+                ],
+                [
+                    'label' => "Total de inscrições suplentes",
+                    'select' => "count(distinct(r.id))",
+                    'from' => "registration r",
+                    'join' => [
+                        'join agent a on a.id = r.agent_id'
+                    ],
+                    'where' => [
+                        "r.opportunity_id in 
+                        (
+                            select o.id 
+                            from 
+                                opportunity o
+                            join 
+                                opportunity_meta om on om.object_id = o.id and om.key = 'isLastPhase'
+                            where
+                                o.parent_id in (
+                                    select 
+                                        sr.object_id 
+                                    from 
+                                        seal_relation sr 
+                                    where 
+                                        sr.seal_id in (1,2,3,4) and sr.object_type = 'MapasCulturais\Entities\Opportunity'
+                                )
+                        )",
+                        "r.status = 8"
+                    ],
+                ],
+            ],
+            "INSCRIÇÕES PAULO GUSTAVO" => [
+                [
+                    'label' => "Total de inscrições enviadas",
+                    'select' => "count(distinct(r.id))",
                     'from' => "registration r",
                     'join' => [
                         'join agent a on a.id = r.agent_id',
-                        "join seal_relation sr on sr.object_id = r.opportunity_id and sr.object_type = 'MapasCulturais\Entities\Opportunity'"
+                        "join opportunity o on o.id = r.opportunity_id"
                     ],
                     'where' => [
-                        "r.status = 3",
-                        "sr.seal_id in (1,2,3,4)"
+                        "o.parent_id is null",
+                        "o.status > 0",
+                        "o.object_type = 'MapasCulturais\Entities\Project'",
+                        "o.object_id in (1274,1278)",
+                        "r.status > 0"
+                    ],
+                ],
+                [
+                    'label' => "Total de inscrições rascunho",
+                    'select' => "count(distinct(r.id))",
+                    'from' => "registration r",
+                    'join' => [
+                        'join agent a on a.id = r.agent_id',
+                        "join opportunity o on o.id = r.opportunity_id"
+                    ],
+                    'where' => [
+                        "o.parent_id is null",
+                        "o.status > 0",
+                        "o.object_type = 'MapasCulturais\Entities\Project'",
+                        "o.object_id in (1274,1278)",
+                        "r.status = 0"
+                    ],
+                ],
+                [
+                    'label' => "Total de inscrições pendentes",
+                    'select' => "count(distinct(r.id))",
+                    'from' => "registration r",
+                    'join' => [
+                        'join agent a on a.id = r.agent_id',
+                        "join opportunity o on o.id = r.opportunity_id"
+                    ],
+                    'where' => [
+                        "o.parent_id is null",
+                        "o.status > 0",
+                        "o.object_type = 'MapasCulturais\Entities\Project'",
+                        "o.object_id in (1274,1278)",
+                        "r.status = 1"
+                    ],
+                ],
+                [
+                    'label' => "Total de inscrições selecionadas",
+                    'select' => "count(distinct(r.id))",
+                    'from' => "registration r",
+                    'join' => [
+                        'join agent a on a.id = r.agent_id',
+                        "join opportunity o on o.id = r.opportunity_id",
+                        "join opportunity_meta om on om.object_id = o.id AND om.key = 'isLastPhase'"
+                    ],
+                    'where' => [
+                        "o.status in (1,-1)",
+                        "o.object_type = 'MapasCulturais\Entities\Project'",
+                        "o.object_id in (1274,1278)",
+                        "r.status = 10"
+                    ],
+                ],
+                [
+                    'label' => "Total de inscrições não selecionadas",
+                    'select' => "count(distinct(r.id))",
+                    'from' => "registration r",
+                    'join' => [
+                        'join agent a on a.id = r.agent_id',
+                        "join opportunity o on o.id = r.opportunity_id",
+                        "join opportunity_meta om on om.object_id = o.id AND om.key = 'isLastPhase'"
+                    ],
+                    'where' => [
+                        "o.status in (1,-1)",
+                        "o.object_type = 'MapasCulturais\Entities\Project'",
+                        "o.object_id in (1274,1278)",
+                        "r.status = 3"
+                    ],
+                ],
+                [
+                    'label' => "Total de inscrições não selecionadas",
+                    'select' => "count(distinct(r.id))",
+                    'from' => "registration r",
+                    'join' => [
+                        'join agent a on a.id = r.agent_id',
+                        "join opportunity o on o.id = r.opportunity_id",
+                        "join opportunity_meta om on om.object_id = o.id AND om.key = 'isLastPhase'"
+                    ],
+                    'where' => [
+                        "o.status in (1,-1)",
+                        "o.object_type = 'MapasCulturais\Entities\Project'",
+                        "o.object_id in (1274,1278)",
+                        "r.status = 3"
+                    ],
+                ],
+                [
+                    'label' => "Total de inscrições inválidas",
+                    'select' => "count(distinct(r.id))",
+                    'from' => "registration r",
+                    'join' => [
+                        'join agent a on a.id = r.agent_id',
+                        "join opportunity o on o.id = r.opportunity_id",
+                        "join opportunity_meta om on om.object_id = o.id AND om.key = 'isLastPhase'"
+                    ],
+                    'where' => [
+                        "o.status in (1,-1)",
+                        "o.object_type = 'MapasCulturais\Entities\Project'",
+                        "o.object_id in (1274,1278)",
+                        "r.status = 2"
+                    ],
+                ],
+                [
+                    'label' => "Total de inscrições supĺentes",
+                    'select' => "count(distinct(r.id))",
+                    'from' => "registration r",
+                    'join' => [
+                        'join agent a on a.id = r.agent_id',
+                        "join opportunity o on o.id = r.opportunity_id",
+                        "join opportunity_meta om on om.object_id = o.id AND om.key = 'isLastPhase'"
+                    ],
+                    'where' => [
+                        "o.status in (1,-1)",
+                        "o.object_type = 'MapasCulturais\Entities\Project'",
+                        "o.object_id in (1274,1278)",
+                        "r.status = 8"
                     ],
                 ],
             ],
         ];
-      
-       
+
         $result = [];
         foreach ($sessions as $session => $queries) {
+            if ($session === "INSCRIÇÕES PAULO GUSTAVO") {
+                continue;
+            }
+
             $result[] = $session;
             foreach ($queries as $values) {
-                $fetch = $values['fetch'] ?? "fetchOne";
-                $sql = $this->buildQuery($values);
-
-                $label = $values['label'];
-
-                if($fetch == "fetchAll") {
-                    $results = $conn->$fetch($sql);
-                    
-                    foreach ($results as $_key => $_value) {
-                        $result[$label][$_value['alias']] = $_value['total'];
-                    }
-                }else {
-                    $result[$label] = $conn->$fetch($sql);
-                }
-            }
-        }
-
-        // $result[1]['Total de agentes por faixa de idade'] = $this->agentByAgeGroup();
-
-        $ris = $conn->fetchAll("SELECT cod,name FROM geo_division WHERE type = 'RI'");
-
-        $ri_results = [];
-        foreach($ris as $ri) {
-            $ri_result = [];
-            foreach ($sessions as $session => $queries) {
-                $ri_result[] = $session;
-                foreach ($queries as $values) {
+                if (!isset($values['result'])) {
                     $fetch = $values['fetch'] ?? "fetchOne";
-                    $sql = $this->buildQuery($values, wheres:["a.id in(select object_id from agent_meta where key = 'geoRI' and value = '{$ri['cod']}')"]);
-    
+                    $sql = $this->buildQuery($values);
+
                     $label = $values['label'];
-    
-                    if($fetch == "fetchAll") {
+
+                    if ($fetch == "fetchAll") {
                         $results = $conn->$fetch($sql);
-                        
+
                         foreach ($results as $_key => $_value) {
-                            $ri_result[$label][$_value['alias']] = $_value['total'];
+                            $result[$label][$_value['alias']] = $_value['total'];
                         }
-                    }else {
-                        $app->log->debug($sql);
-                        $ri_result[$label] = $conn->$fetch($sql);
+                    } else {
+                        $result[$label] = $conn->$fetch($sql);
                     }
+                } else {
+                    $label = $values['label'];
+                    $result[$label] = $values['result'];
                 }
             }
-            $ri_results[$ri['name']] = $ri_result;
         }
 
+        // Print dos dados
+        echo '<h1>Segmentação Global</h1>';
         dump($result);
 
         echo '<h1>Segmentação por RI</h1>';
-        dump($ri_results);
+        dump($this->segmentacaoRI($sessions));
+
+
+        echo '<h1>Segmentação Paulo Gustavo por oportunidade</h1>';
+        dump($this->segmentadoPauloGustavo($sessions));
+
+        echo '<h1>Segmentação Paulo Gustavo por RI</h1>';
+        dump($this->segmentadoPauloGustavoPorRI($sessions));
     }
 
     public function agentByAgeGroup()
@@ -1813,6 +2002,146 @@ class Controller extends \MapasCulturais\Controllers\EntityController
 
         return $result;
     }
-    
+
+
+    public function segmentacaoRI($sessions)
+    {
+        $app = App::i();
+        $em = $app->em;
+        $conn = $em->getConnection();
+
+        $ris = $conn->fetchAll("SELECT cod,name FROM geo_division WHERE type = 'RI'");
+        $ri_results = [];
+        foreach ($ris as $ri) {
+            $ri_result = [];
+            foreach ($sessions as $session => $queries) {
+                if ($session === "INSCRIÇÕES PAULO GUSTAVO") {
+                    continue;
+                }
+                $ri_result[] = $session;
+                foreach ($queries as $values) {
+                    if (!isset($values['result'])) {
+                        $fetch = $values['fetch'] ?? "fetchOne";
+                        $sql = $this->buildQuery($values, wheres: ["a.id in(select object_id from agent_meta where key = 'geoRI' and value = '{$ri['cod']}')"]);
+
+                        $label = $values['label'];
+
+                        if ($fetch == "fetchAll") {
+                            $results = $conn->$fetch($sql);
+
+                            foreach ($results as $_key => $_value) {
+                                $ri_result[$label][$_value['alias']] = $_value['total'];
+                            }
+                        } else {
+                            $app->log->debug($sql);
+                            $ri_result[$label] = $conn->$fetch($sql);
+                        }
+                    } else {
+                        $label = $values['label'];
+                        $result[$label] = $values['result'];
+                    }
+                }
+            }
+            $ri_results[$ri['name']] = $ri_result;
+        }
+
+        return $ri_results;
+    }
+
+    public function segmentadoPauloGustavo($sessions)
+    {
+        $app = App::i();
+        $em = $app->em;
+        $conn = $em->getConnection();
+        $opps_paulo_gustavo = $conn->fetchAll("SELECT o.id,o.name FROM opportunity o WHERE o.parent_id is null AND o.object_type = 'MapasCulturais\Entities\Project' AND o.object_id in (1274,1278)");
+
+        $app = App::i();
+        $em = $app->em;
+        $conn = $em->getConnection();
+
+        $opp_results = [];
+        foreach ($opps_paulo_gustavo as $opp) {
+            $results = [];
+            foreach ($sessions as $session => $queries) {
+                if ($session !== "INSCRIÇÕES PAULO GUSTAVO") {
+                    continue;
+                }
+
+                foreach ($queries as $values) {
+                    if (!isset($values['result'])) {
+                        $fetch = $values['fetch'] ?? "fetchOne";
+                        $complement = "o.id = {$opp['id']}";
+                        if (in_array("o.status in (1,-1)", array_values($values['where']))) {
+                            $complement = "o.parent_id = {$opp['id']}";
+                        }
+                        $sql = $this->buildQuery($values, wheres: [$complement]);
+
+                        $label = $values['label'];
+
+                        if ($fetch == "fetchAll") {
+                            $results = $conn->$fetch($sql);
+
+                            foreach ($results as $_key => $_value) {
+                                $results[$label][$_value['alias']] = $_value['total'];
+                            }
+                        } else {
+                            $app->log->debug($sql);
+                            $results[$label] = $conn->$fetch($sql);
+                        }
+                    } else {
+                        $label = $values['label'];
+                        $result[$label] = $values['result'];
+                    }
+                }
+            }
+            $opp_results["#{$opp['id']} - " . $opp['name']] = $results;
+        }
+
+        return $opp_results;
+    }
+
+    public function segmentadoPauloGustavoPorRI($sessions)
+    {
+        $app = App::i();
+        $em = $app->em;
+        $conn = $em->getConnection();
+        $opps_paulo_gustavo = $conn->fetchAll("SELECT o.id,o.name FROM opportunity o WHERE o.parent_id is null AND o.object_type = 'MapasCulturais\Entities\Project' AND o.object_id in (1274,1278)");
+        $ris = $conn->fetchAll("SELECT cod,name FROM geo_division WHERE type = 'RI'");
+
+        $app = App::i();
+        $em = $app->em;
+        $conn = $em->getConnection();
+
+        $opp_results = [];
+        foreach ($opps_paulo_gustavo as $opp) {
+            $fetch = $values['fetch'] ?? "fetchOne";
+            foreach ($ris as $ri) {
+                $ri_result = [];
+                foreach ($sessions as $session => $queries) {
+                    if ($session !== "INSCRIÇÕES PAULO GUSTAVO") {
+                        continue;
+                    }
+
+                    foreach ($queries as $values) {
+                        if (!isset($values['result'])) {
+                            $complement = "o.id = {$opp['id']}";
+                            if (in_array("o.status in (1,-1)", array_values($values['where']))) {
+                                $complement = "o.parent_id = {$opp['id']}";
+                            }
+                            $sql = $this->buildQuery($values, wheres: ["a.id in(select object_id from agent_meta where key = 'geoRI' and value = '{$ri['cod']}')", $complement]);
+                            $label = $values['label'];
+                            $ri_result[$label] = $conn->$fetch($sql);
+                        } else {
+                            $label = $values['label'];
+                            $result[$label] = $values['result'];
+                        }
+                    }
+                }
+                $opp_results["#{$opp['id']} - " . $opp['name']][$ri['name']] = $ri_result;
+            }
+        }
+
+        return $opp_results;
+    }
     
 }
