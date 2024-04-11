@@ -1598,7 +1598,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
             ],
             "INSCRIÇÕES" => [
                 [
-                    'label' => "Total de inscrições enviadas",
+                    'label' => "Enviadas",
                     'select' => "count(distinct(r.id))",
                     'from' => "registration r",
                     'join' => [
@@ -1621,7 +1621,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     ],
                 ],
                 [
-                    'label' => "Total de inscrições rascunho",
+                    'label' => "Rascunho",
                     'select' => "count(distinct(r.id))",
                     'from' => "registration r",
                     'join' => [
@@ -1644,7 +1644,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     ],
                 ],
                 [
-                    'label' => "Total de inscrições pendente",
+                    'label' => "Pendente",
                     'select' => "count(distinct(r.id))",
                     'from' => "registration r",
                     'join' => [
@@ -1667,7 +1667,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     ],
                 ],
                 [
-                    'label' => "Total de inscrições selecionadas",
+                    'label' => "selecionadas",
                     'select' => "count(distinct(r.id))",
                     'from' => "registration r",
                     'join' => [
@@ -1695,7 +1695,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     ],
                 ],
                 [
-                    'label' => "Total de inscrições não selecionadas",
+                    'label' => "Não selecionadas",
                     'select' => "count(distinct(r.id))",
                     'from' => "registration r",
                     'join' => [
@@ -1723,7 +1723,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     ],
                 ],
                 [
-                    'label' => "Total de inscrições inválidas",
+                    'label' => "Inválidas",
                     'select' => "count(distinct(r.id))",
                     'from' => "registration r",
                     'join' => [
@@ -1751,7 +1751,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     ],
                 ],
                 [
-                    'label' => "Total de inscrições suplentes",
+                    'label' => "Suplentes",
                     'select' => "count(distinct(r.id))",
                     'from' => "registration r",
                     'join' => [
@@ -1781,7 +1781,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
             ],
             "INSCRIÇÕES PAULO GUSTAVO" => [
                 [
-                    'label' => "Total de inscrições enviadas",
+                    'label' => "Enviadas",
                     'select' => "count(distinct(r.id))",
                     'from' => "registration r",
                     'join' => [
@@ -1797,7 +1797,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     ],
                 ],
                 [
-                    'label' => "Total de inscrições rascunho",
+                    'label' => "Rascunho",
                     'select' => "count(distinct(r.id))",
                     'from' => "registration r",
                     'join' => [
@@ -1813,7 +1813,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     ],
                 ],
                 [
-                    'label' => "Total de inscrições pendentes",
+                    'label' => "Pendentes",
                     'select' => "count(distinct(r.id))",
                     'from' => "registration r",
                     'join' => [
@@ -1829,7 +1829,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     ],
                 ],
                 [
-                    'label' => "Total de inscrições selecionadas",
+                    'label' => "Selecionadas",
                     'select' => "count(distinct(r.id))",
                     'from' => "registration r",
                     'join' => [
@@ -1845,7 +1845,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     ],
                 ],
                 [
-                    'label' => "Total de inscrições não selecionadas",
+                    'label' => "Não selecionadas",
                     'select' => "count(distinct(r.id))",
                     'from' => "registration r",
                     'join' => [
@@ -1861,7 +1861,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     ],
                 ],
                 [
-                    'label' => "Total de inscrições não selecionadas",
+                    'label' => "Não selecionadas",
                     'select' => "count(distinct(r.id))",
                     'from' => "registration r",
                     'join' => [
@@ -1877,7 +1877,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     ],
                 ],
                 [
-                    'label' => "Total de inscrições inválidas",
+                    'label' => "Inválidas",
                     'select' => "count(distinct(r.id))",
                     'from' => "registration r",
                     'join' => [
@@ -1893,7 +1893,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     ],
                 ],
                 [
-                    'label' => "Total de inscrições supĺentes",
+                    'label' => "Supĺentes",
                     'select' => "count(distinct(r.id))",
                     'from' => "registration r",
                     'join' => [
@@ -1942,20 +1942,36 @@ class Controller extends \MapasCulturais\Controllers\EntityController
         }
 
         // Print dos dados
-        echo '<h1>Segmentação Global</h1>';
-        dump($result);
+        $this->output("Segmentação Global", $result);
 
-        echo '<h1>Segmentação por RI</h1>';
-        dump($this->segmentacaoRI($sessions));
+        $this->output("Segmentação Paulo Gustavo por oportunidade", $this->segmentadoPauloGustavo($sessions));
 
+        $this->output("Segmentação por RI", $this->segmentacaoRI($sessions));
 
-        echo '<h1>Segmentação Paulo Gustavo por oportunidade</h1>';
-        dump($this->segmentadoPauloGustavo($sessions));
-
-        echo '<h1>Segmentação Paulo Gustavo por RI</h1>';
-        dump($this->segmentadoPauloGustavoPorRI($sessions));
+        $this->output("Segmentação Paulo Gustavo por RI", $this->segmentadoPauloGustavoPorRI($sessions));
     }
 
+    public function output($label, $data)
+    {
+        if(isset($_GET['csv'])) {
+            echo "<div style='white-space: pre-line;'>";
+            echo "{$label},\n";
+            echo ",\n";
+            $result = print_r($data, true);
+            $result =  str_replace(["[", "]"], '"', $result);
+            $result =  str_replace([" => ", ")"], ',', $result);
+            $result =  str_replace(["Array", "("], '', $result);
+            echo $result;
+            echo ",\n";
+            echo ",\n";
+            echo "</div>";
+        }else {
+            echo "<h1>{$label}</h1>";
+            dump($data);
+        }
+    }
+
+    
     public function agentByAgeGroup()
     {
         $app = App::i();
@@ -2113,31 +2129,31 @@ class Controller extends \MapasCulturais\Controllers\EntityController
         $conn = $em->getConnection();
 
         $opp_results = [];
-        foreach ($opps_paulo_gustavo as $opp) {
-            $fetch = $values['fetch'] ?? "fetchOne";
-            foreach ($ris as $ri) {
-                $ri_result = [];
-                foreach ($sessions as $session => $queries) {
-                    if ($session !== "INSCRIÇÕES PAULO GUSTAVO") {
-                        continue;
-                    }
+        foreach ($ris as $ri) {
+            foreach ($opps_paulo_gustavo as $opp) {
+                    $fetch = $values['fetch'] ?? "fetchOne";
+                    $ri_result = [];
+                    foreach ($sessions as $session => $queries) {
+                        if ($session !== "INSCRIÇÕES PAULO GUSTAVO") {
+                            continue;
+                        }
 
-                    foreach ($queries as $values) {
-                        if (!isset($values['result'])) {
-                            $complement = "o.id = {$opp['id']}";
-                            if (in_array("o.status in (1,-1)", array_values($values['where']))) {
-                                $complement = "o.parent_id = {$opp['id']}";
+                        foreach ($queries as $values) {
+                            if (!isset($values['result'])) {
+                                $complement = "o.id = {$opp['id']}";
+                                if (in_array("o.status in (1,-1)", array_values($values['where']))) {
+                                    $complement = "o.parent_id = {$opp['id']}";
+                                }
+                                $sql = $this->buildQuery($values, wheres: ["a.id in(select object_id from agent_meta where key = 'geoRI' and value = '{$ri['cod']}')", $complement]);
+                                $label = $values['label'];
+                                $ri_result[$label] = $conn->$fetch($sql);
+                            } else {
+                                $label = $values['label'];
+                                $ri_result[$label] = $values['result'];
                             }
-                            $sql = $this->buildQuery($values, wheres: ["a.id in(select object_id from agent_meta where key = 'geoRI' and value = '{$ri['cod']}')", $complement]);
-                            $label = $values['label'];
-                            $ri_result[$label] = $conn->$fetch($sql);
-                        } else {
-                            $label = $values['label'];
-                            $result[$label] = $values['result'];
                         }
                     }
-                }
-                $opp_results["#{$opp['id']} - " . $opp['name']][$ri['name']] = $ri_result;
+                $opp_results[$ri['name']]["#{$opp['id']} - " . $opp['name']] = $ri_result;
             }
         }
 
