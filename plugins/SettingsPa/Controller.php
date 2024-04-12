@@ -2179,6 +2179,9 @@ class Controller extends \MapasCulturais\Controllers\EntityController
         $agent_ids = $conn->fetchAll("select r.agent_id  from registration r where r.opportunity_id in (SELECT o.id FROM opportunity o WHERE o.parent_id is null AND o.object_type = 'MapasCulturais\Entities\Project' AND o.object_id in (1274,1278))");
         $app->disableAccessControl();
 
+        $file = __DIR__."/send-mail-lpg.txt";
+        $conteudo = file_get_contents($file);
+       
         $total = count($agent_ids);
         $error = [];
         $success = [];
@@ -2187,36 +2190,45 @@ class Controller extends \MapasCulturais\Controllers\EntityController
 
             if ($agent = $app->repo('Agent')->find($agent_id['agent_id'])) {
                 if ($agent->emailPublico ?: $agent->emailPrivado ?: $agent->user->email) {
-
+                    
                     $template_data = [
                         'siteName' => $app->siteName,
                         'baseUrl' => $app->getBaseUrl(),
                         'userName' => $agent->name,
                     ];
-
+                    
                     $message = $app->renderMustacheTemplate('send_mail_lpg.html', $template_data);
-
+                    
                     $email = $agent->emailPublico ?: $agent->emailPrivado ?: $agent->user->email;
-                    if (preg_match('/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/', $email)) {
-                        $app->log->debug("{$pos} de {$total} - Email LPG enviado para " . $email);
+                    if (strpos($conteudo, $email) === false) {
+                        if (preg_match('/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/', $email)) {
+                            $app->log->debug("{$pos} de {$total} - Email LPG enviado para " . $email);
+    
+                            $email_params = [
+                                'from' => $app->config['mailer.from'],
+                                'to' => $email,
+                                'subject' => "[Pesquisa] colabore com melhorias no nosso mapa!",
+                                'body' => $message,
+                            ];
+                            if($sendMail) {
+                                $app->createAndSendMailMessage($email_params);
+                            }
+                            
+                            $success[] = $email;
 
-                        $email_params = [
-                            'from' => $app->config['mailer.from'],
-                            'to' => $email,
-                            'subject' => "[Pesquisa] colabore com melhorias no nosso mapa!",
-                            'body' => $message,
-                        ];
-                        if($sendMail) {
-                            $app->createAndSendMailMessage($email_params);
+                            $conteudo .= "$email\n";
+                            file_put_contents($file, $conteudo);
+                        }else {
+                            $error[] = $email;
+                            $app->log->debug("{$pos} de {$total} - E-MAIL {$email} - INVÁLIDO" );
                         }
-                        
-                        $success[] = $email;
                     }else {
-                        $error[] = $email;
-                        $app->log->debug("{$pos} de {$total} - E-MAIL {$email} - INVÁLIDO" );
+                        $app->log->debug("{$pos} de {$total} - E-MAIL {$email} - Ja foi enviado" );
                     }
                 }
             }
+
+            
             $app->em->clear();
         }
         $app->enableAccessControl();
