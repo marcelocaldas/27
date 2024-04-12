@@ -2179,7 +2179,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
         $agent_ids = $conn->fetchAll("select r.agent_id  from registration r where r.opportunity_id in (SELECT o.id FROM opportunity o WHERE o.parent_id is null AND o.object_type = 'MapasCulturais\Entities\Project' AND o.object_id in (1274,1278))");
         $app->disableAccessControl();
 
-        $file = __DIR__ . "/send-mail-lpg.txt";
+        $file = __DIR__ . "/lpgmails.txt";
         $conteudo = file_get_contents($file);
 
         $total = count($agent_ids);
