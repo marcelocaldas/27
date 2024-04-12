@@ -3,7 +3,7 @@
 namespace SettingsPa;
 
 use MapasCulturais\App;
-
+use MapasCulturais\i;
 class Controller extends \MapasCulturais\Controllers\EntityController
 {
     use \MapasCulturais\Traits\ControllerAPI;
@@ -2159,5 +2159,76 @@ class Controller extends \MapasCulturais\Controllers\EntityController
 
         return $opp_results;
     }
+
+    public function GET_sendMailLpg()
+    {
+
+        $app = App::i();
+
+        $this->requireAuthentication();
+
+        $pass = $_GET['password'] ? md5($_GET['password']) : null;
+        $sendMail = isset($_GET['sendMail']) ? true : false;
+
+        if (!$app->user->is('admin') || $pass !== "d37216b2af706ef81740d9ed403c9d5a") {
+            return;
+        }
+
+        $em = $app->em;
+        $conn = $em->getConnection();
+        $agent_ids = $conn->fetchAll("select r.agent_id  from registration r where r.opportunity_id in (SELECT o.id FROM opportunity o WHERE o.parent_id is null AND o.object_type = 'MapasCulturais\Entities\Project' AND o.object_id in (1274,1278))");
+        $app->disableAccessControl();
+
+        $total = count($agent_ids);
+        $error = [];
+        $success = [];
+        foreach ($agent_ids as $key =>  $agent_id) {
+            $pos = $key + 1;
+
+            if ($agent = $app->repo('Agent')->find($agent_id['agent_id'])) {
+                if ($agent->emailPrivado || $agent->emailPublico) {
+
+                    $template_data = [
+                        'siteName' => $app->siteName,
+                        'baseUrl' => $app->getBaseUrl(),
+                        'userName' => $agent->name,
+                    ];
+
+                    $message = $app->renderMustacheTemplate('send_mail_lpg.html', $template_data);
+
+                    $email = $agent->emailPrivado ?: $agent->publico;
+                    if (preg_match('/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/', $email)) {
+                        $app->log->debug("{$pos} de {$total} - Email LPG enviado para " . $email);
+
+                        $email_params = [
+                            'from' => $app->config['mailer.from'],
+                            'to' => $email,
+                            'subject' => "[Pesquisa] colabore com melhorias no nosso mapa!",
+                            'body' => $message,
+                        ];
+                        if($sendMail) {
+                            $app->createAndSendMailMessage($email_params);
+                        }
+                        
+                        $success[] = $email;
+                    }else {
+                        $error[] = $email;
+                        $app->log->debug("{$pos} de {$total} - E-MAIL {$email} - INVÁLIDO" );
+                    }
+                }
+            }
+            $app->em->clear();
+        }
+        $app->enableAccessControl();
+
+        dump(count($success) . " E-mails disparados com sucesso");
+        dump($success);
+        
+        dump(count($error) . " E-mails inválidos não disparados");
+        dump($error);
+    }
+    
+
+
     
 }
