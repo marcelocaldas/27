@@ -4,6 +4,7 @@ namespace SettingsPa;
 
 use MapasCulturais\App;
 use MapasCulturais\i;
+
 class Controller extends \MapasCulturais\Controllers\EntityController
 {
     use \MapasCulturais\Traits\ControllerAPI;
@@ -16,10 +17,10 @@ class Controller extends \MapasCulturais\Controllers\EntityController
     {
 
         $this->requireAuthentication();
-        
+
         $app = App::i();
 
-        if(!$app->user->is('admin')) {
+        if (!$app->user->is('admin')) {
             return;
         }
 
@@ -84,10 +85,10 @@ class Controller extends \MapasCulturais\Controllers\EntityController
         $total_projetos_rascunho = $conn->fetchColumn("select count(*) as total from project where status = 0");
         $total_projetos_lixeira = $conn->fetchColumn("select count(*) as total from project where status = -10");
         $total_projetos_arquivado = $conn->fetchColumn("select count(*) as total from project where status = -2");
-        
+
         $total_inscricoes = $conn->fetchColumn("select count(*) as total from registration");
-        
-   
+
+
 
         $total_agentes = $conn->fetchColumn("SELECT count(*) as Total from agent WHERE status > 0");
         $total_agentes_oficiais = $conn->fetchColumn("select count(*) as total from  agent e where e.id in (select sr.object_id from seal_relation sr where sr.object_type = 'MapasCulturais\Entities\Agent' and sr.status = 1 and sr.seal_id in (1,2,3,4)) and e.parent_id is null");
@@ -101,7 +102,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
         $total_agentes_idoso = $conn->fetchColumn("select count(*) from agent_meta am  join agent a on a.id = am.object_id where am.key = 'idoso' and value <> '0' and a.status > 0");
         $outras_comunidades_tradicionais = $conn->fetchColumn("select count(*) as total from agent_meta am where am.key = 'comunidadesTradicionalOutros'");
 
-         ####### INSCRICOES ########
+        ####### INSCRICOES ########
 
         // Total de inscrições suplente
         $total_inscricoes_nao_suplente = $conn->fetchColumn("
@@ -158,8 +159,8 @@ class Controller extends \MapasCulturais\Controllers\EntityController
             and r.status > 0
         ");
 
-         // Total de inscrições rascunho
-         $total_inscricoes_pendentes = $conn->fetchColumn("
+        // Total de inscrições rascunho
+        $total_inscricoes_pendentes = $conn->fetchColumn("
             select 
                 count(*) 
             from 
@@ -231,8 +232,8 @@ class Controller extends \MapasCulturais\Controllers\EntityController
             r.status = 10
         ");
 
-         // Total de inscrições pendentes
-         $total_inscricoes_pendentes_na_ultima_fase = $conn->fetchColumn("
+        // Total de inscrições pendentes
+        $total_inscricoes_pendentes_na_ultima_fase = $conn->fetchColumn("
             select 
                 count(*) 
             from 
@@ -259,9 +260,9 @@ class Controller extends \MapasCulturais\Controllers\EntityController
             )  and 
             r.status = 1
         ");
-     
-         // Total de inscrições pendentes
-         $total_inscricoes_rascunhos_na_ultima_fase = $conn->fetchColumn("
+
+        // Total de inscrições pendentes
+        $total_inscricoes_rascunhos_na_ultima_fase = $conn->fetchColumn("
             select 
                 count(*) 
             from 
@@ -290,7 +291,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
         ");
 
         ####### AGENTES########
-        
+
         // Total de agentes NÃO CONTEMPLADOS em editais
         $total_agentes_nao_contemplados_em_editais = $conn->fetchColumn("
             select 
@@ -317,7 +318,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                 r.status in (2,3,8)
             ) 
         ");
-        
+
         // Total de agentes CONTEMPLADOS em algum edital
         $total_agentes_contemplados_em_editais = $conn->fetchColumn("
             select 
@@ -644,7 +645,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
             $tempo_funcao[$_value['faixa_idade']] = $_value['total'];
         }
 
-       
+
 
         $results = $conn->fetchAll("
             select 
@@ -661,8 +662,8 @@ class Controller extends \MapasCulturais\Controllers\EntityController
         ");
 
         $inscricoes_por_oportunidade = [];
-        foreach($results as $values) {
-            $inscricoes_por_oportunidade["#{$values['id']} -- ". $values['name']] = [
+        foreach ($results as $values) {
+            $inscricoes_por_oportunidade["#{$values['id']} -- " . $values['name']] = [
                 'Rascunho' =>  $conn->fetchOne("
                     select 
                         count(*) 
@@ -781,11 +782,11 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                 o.object_id in (1274,1278)
             order by o.name
         ");
-        
+
 
         $inscricoes_por_oportunidade_paulo_gustavo = [];
-        foreach($results as $values) {
-            $inscricoes_por_oportunidade_paulo_gustavo["#{$values['id']} -- ". $values['name']] = [
+        foreach ($results as $values) {
+            $inscricoes_por_oportunidade_paulo_gustavo["#{$values['id']} -- " . $values['name']] = [
                 'Rascunho' =>  $conn->fetchOne("
                     select 
                         count(*) 
@@ -922,7 +923,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
         }
 
         $sem_inscricao_enviada = [];
-        foreach($results as $values) {
+        foreach ($results as $values) {
             $r = $conn->fetchOne("
                 select 
                     count(*) 
@@ -933,10 +934,9 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                 and r.status > 0
             ");
 
-            if($r == 0) {
-                $sem_inscricao_enviada["#{$values['id']} -- ". $values['name']] = $r;
+            if ($r == 0) {
+                $sem_inscricao_enviada["#{$values['id']} -- " . $values['name']] = $r;
             }
-           
         }
 
         // Total de inscrições suplente
@@ -1006,8 +1006,8 @@ class Controller extends \MapasCulturais\Controllers\EntityController
             r.status = 3
         ");
 
-         // Total de inscrições pendentes
-         $total_inscricoes_paulo_pendentes_paulo_gustavo = $conn->fetchColumn("
+        // Total de inscrições pendentes
+        $total_inscricoes_paulo_pendentes_paulo_gustavo = $conn->fetchColumn("
             select 
                 count(*) 
             from 
@@ -1113,8 +1113,8 @@ class Controller extends \MapasCulturais\Controllers\EntityController
             r.status = 0
         ");
 
-         // Total de inscrições rascunhos na última fase
-         $total_inscricoes_pendente_na_última_fase_paulo_gustavo = $conn->fetchColumn("
+        // Total de inscrições rascunhos na última fase
+        $total_inscricoes_pendente_na_última_fase_paulo_gustavo = $conn->fetchColumn("
             select 
                 count(*) 
             from 
@@ -1277,7 +1277,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
             $where = implode(") AND (", $where);
             $where = "({$where})";
         }
-        
+
         $join = $join ?: "";
         $where = $where ?: "";
 
@@ -1292,8 +1292,8 @@ class Controller extends \MapasCulturais\Controllers\EntityController
                     {$where}
                     {$group}
             ";
-        
-        if($showPquery) {
+
+        if ($showPquery) {
             dump($sql);
             exit;
         }
@@ -1953,7 +1953,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
 
     public function output($label, $data)
     {
-        if(isset($_GET['csv'])) {
+        if (isset($_GET['csv'])) {
             echo "<div style='white-space: pre-line;'>";
             echo "{$label},\n";
             echo ",\n";
@@ -1965,13 +1965,13 @@ class Controller extends \MapasCulturais\Controllers\EntityController
             echo ",\n";
             echo ",\n";
             echo "</div>";
-        }else {
+        } else {
             echo "<h1>{$label}</h1>";
             dump($data);
         }
     }
 
-    
+
     public function agentByAgeGroup()
     {
         $app = App::i();
@@ -2131,28 +2131,28 @@ class Controller extends \MapasCulturais\Controllers\EntityController
         $opp_results = [];
         foreach ($ris as $ri) {
             foreach ($opps_paulo_gustavo as $opp) {
-                    $fetch = $values['fetch'] ?? "fetchOne";
-                    $ri_result = [];
-                    foreach ($sessions as $session => $queries) {
-                        if ($session !== "INSCRIÇÕES PAULO GUSTAVO") {
-                            continue;
-                        }
+                $fetch = $values['fetch'] ?? "fetchOne";
+                $ri_result = [];
+                foreach ($sessions as $session => $queries) {
+                    if ($session !== "INSCRIÇÕES PAULO GUSTAVO") {
+                        continue;
+                    }
 
-                        foreach ($queries as $values) {
-                            if (!isset($values['result'])) {
-                                $complement = "o.id = {$opp['id']}";
-                                if (in_array("o.status in (1,-1)", array_values($values['where']))) {
-                                    $complement = "o.parent_id = {$opp['id']}";
-                                }
-                                $sql = $this->buildQuery($values, wheres: ["a.id in(select object_id from agent_meta where key = 'geoRI' and value = '{$ri['cod']}')", $complement]);
-                                $label = $values['label'];
-                                $ri_result[$label] = $conn->$fetch($sql);
-                            } else {
-                                $label = $values['label'];
-                                $ri_result[$label] = $values['result'];
+                    foreach ($queries as $values) {
+                        if (!isset($values['result'])) {
+                            $complement = "o.id = {$opp['id']}";
+                            if (in_array("o.status in (1,-1)", array_values($values['where']))) {
+                                $complement = "o.parent_id = {$opp['id']}";
                             }
+                            $sql = $this->buildQuery($values, wheres: ["a.id in(select object_id from agent_meta where key = 'geoRI' and value = '{$ri['cod']}')", $complement]);
+                            $label = $values['label'];
+                            $ri_result[$label] = $conn->$fetch($sql);
+                        } else {
+                            $label = $values['label'];
+                            $ri_result[$label] = $values['result'];
                         }
                     }
+                }
                 $opp_results[$ri['name']]["#{$opp['id']} - " . $opp['name']] = $ri_result;
             }
         }
@@ -2179,9 +2179,9 @@ class Controller extends \MapasCulturais\Controllers\EntityController
         $agent_ids = $conn->fetchAll("select r.agent_id  from registration r where r.opportunity_id in (SELECT o.id FROM opportunity o WHERE o.parent_id is null AND o.object_type = 'MapasCulturais\Entities\Project' AND o.object_id in (1274,1278))");
         $app->disableAccessControl();
 
-        $file = __DIR__."/send-mail-lpg.txt";
+        $file = __DIR__ . "/send-mail-lpg.txt";
         $conteudo = file_get_contents($file);
-       
+
         $total = count($agent_ids);
         $error = [];
         $success = [];
@@ -2190,57 +2190,53 @@ class Controller extends \MapasCulturais\Controllers\EntityController
 
             if ($agent = $app->repo('Agent')->find($agent_id['agent_id'])) {
                 if ($agent->emailPublico ?: $agent->emailPrivado ?: $agent->user->email) {
-                    
+
                     $template_data = [
                         'siteName' => $app->siteName,
                         'baseUrl' => $app->getBaseUrl(),
                         'userName' => $agent->name,
                     ];
-                    
+
                     $message = $app->renderMustacheTemplate('send_mail_lpg.html', $template_data);
-                    
+
                     $email = $agent->emailPublico ?: $agent->emailPrivado ?: $agent->user->email;
                     if (strpos($conteudo, $email) === false) {
                         if (preg_match('/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/', $email)) {
                             $app->log->debug("{$pos} de {$total} - Email LPG enviado para " . $email);
-    
+
                             $email_params = [
                                 'from' => $app->config['mailer.from'],
                                 'to' => $email,
                                 'subject' => "[Pesquisa] colabore com melhorias no nosso mapa!",
                                 'body' => $message,
                             ];
-                            if($sendMail) {
+                            if ($sendMail) {
                                 $app->createAndSendMailMessage($email_params);
                             }
-                            
+
                             $success[] = $email;
 
                             $conteudo .= "$email\n";
                             file_put_contents($file, $conteudo);
-                        }else {
+                        } else {
                             $error[] = $email;
-                            $app->log->debug("{$pos} de {$total} - E-MAIL {$email} - INVÁLIDO" );
+                            $app->log->debug("{$pos} de {$total} - E-MAIL {$email} - INVÁLIDO");
                         }
-                    }else {
-                        $app->log->debug("{$pos} de {$total} - E-MAIL {$email} - Ja foi enviado" );
+                    } else {
+                        $app->log->debug("{$pos} de {$total} - E-MAIL {$email} - Ja foi enviado");
                     }
                 }
             }
 
-            
+
             $app->em->clear();
         }
         $app->enableAccessControl();
 
         dump(count($success) . " E-mails disparados com sucesso");
         dump($success);
-        
+
         dump(count($error) . " E-mails inválidos não disparados");
         dump($error);
     }
-    
-
-
-    
 }
