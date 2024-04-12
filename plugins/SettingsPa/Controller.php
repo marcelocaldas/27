@@ -2186,7 +2186,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
             $pos = $key + 1;
 
             if ($agent = $app->repo('Agent')->find($agent_id['agent_id'])) {
-                if ($agent->emailPrivado || $agent->emailPublico) {
+                if ($agent->emailPublico ?: $agent->emailPrivado ?: $agent->user->email) {
 
                     $template_data = [
                         'siteName' => $app->siteName,
@@ -2196,7 +2196,7 @@ class Controller extends \MapasCulturais\Controllers\EntityController
 
                     $message = $app->renderMustacheTemplate('send_mail_lpg.html', $template_data);
 
-                    $email = $agent->emailPrivado ?: $agent->publico;
+                    $email = $agent->emailPublico ?: $agent->emailPrivado ?: $agent->user->email;
                     if (preg_match('/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/', $email)) {
                         $app->log->debug("{$pos} de {$total} - Email LPG enviado para " . $email);
 
