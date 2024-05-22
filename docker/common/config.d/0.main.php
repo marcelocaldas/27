@@ -16,8 +16,8 @@ return [
     'homeHeader.secondBannerLink' => 'https://mapacultural.pa.gov.br/files/project/1278/parecer-impostos.pdf',
     'homeHeader.secondDownloadableLink' => true,
 
-    'homeHeader.thirdBanner' => 'img/banner-educ-patrimonial.png',
-    'homeHeader.thirdBannerLink' => 'https://www.secult.pa.gov.br/midias/anexos/78_caderno_de_educacao_patrimonial_site.pdf',
+    'homeHeader.thirdBanner' => 'img/banner-acessibilidade.jpg',
+    'homeHeader.thirdBannerLink' => 'https://www.secult.pa.gov.br/download/81/guias-de-acessibilidade-inclusao-e-protagonismo-da-pessoa-com-deficiencia-e-do-migrante/',
     'homeHeader.thirdDownloadableLink' => true,
     'app.geoDivisionsHierarchy' => [
         'pais'              => ['name' => i::__('País'),            'showLayer' => true],
