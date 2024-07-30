@@ -7,6 +7,7 @@ $config_plugins = [
         'AdminLoginAsUser',
         'CreateGeoDivisions',
         'Analytics',
+        'Accessibility',
 
         'MapasBlame' => [
             'namespace' => 'MapasBlame',
