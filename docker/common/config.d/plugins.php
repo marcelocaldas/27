@@ -8,6 +8,7 @@ $config_plugins = [
         'CreateGeoDivisions',
         'Analytics',
         'Accessibility',
+        'SpamDetector',
 
         'MapasBlame' => [
             'namespace' => 'MapasBlame',
