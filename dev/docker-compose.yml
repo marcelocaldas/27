@@ -31,6 +31,8 @@ services:
       - APP_MODE=development
       - REDIS_CACHE=redis
       - SESSIONS_SAVE_PATH=tcp://redis:6379
+      - MAILER_TRANSPORT=smtp://mailhog:1025
+      - MAILER_FROM=sysadmin@localhost
 
       - BUILD_ASSETS=1
       
