@@ -76,6 +76,17 @@ class Plugin extends \MapasCulturais\Plugin
             $this->addTaxonoyTermsToJs("segmento");
         });
 
+        $app->hook("template(agent.single.<<single1|single2>>-entity-info-taxonomie-area):after", function () use($app) {
+            /** @var \MapasCulturais\Themes\BaseV2\Theme $this */
+            $this->part('registration-fields/cultural-segment',['isEditable' => false ]);
+        });
+
+        $app->hook("template(agent.edit.<<edit1|edit2>>-entity-info-taxonomie-area):after", function () use($app) {
+            /** @var \MapasCulturais\Themes\BaseV2\Theme $this */
+            $this->part('registration-fields/cultural-segment',['isEditable' => true ]);
+        });
+
+
         /**
          * Insere conteúdo na HOME
          */
