@@ -38,14 +38,14 @@ esac
 done
 
 if [ $BUILD = "1" ]; then
-   docker-compose -f docker-compose.yml build
+   docker compose -f docker-compose.yml build
 fi
 
 if [ $DOWN = "1" ]; then
-   docker-compose -f docker-compose.yml down
+   docker compose -f docker-compose.yml down
 fi
 
-docker-compose -f docker-compose.yml run --service-ports  mapas
+docker compose -f docker-compose.yml run --service-ports  mapas
 
-docker-compose -f docker-compose.yml down
+docker compose -f docker-compose.yml down
 cd $CDIR
