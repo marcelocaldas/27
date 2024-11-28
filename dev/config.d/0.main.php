@@ -37,5 +37,9 @@ return [
         'RI'  => ['name' => i::__('Região de integração'),'showLayer' => true],
         'microrregiao'      => ['name' => i::__('Microrregião'),    'showLayer' => true],
         'municipio'         => ['name' => i::__('Município'),       'showLayer' => true],
-    ]
+    ],
+
+    'app.geoDivisionsFilters' => [15],
+    
+    'app.geoDivisionsShowAgentRI' => true,
 ];
