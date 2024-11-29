@@ -29,7 +29,7 @@ case $i in
 	start-dev.sh [-b] [-d]
 
     -b   | --build      builda a imagem Docker
-    -d   | --down       executa o docker-compose down antes do docker-compose run
+    -d   | --down       executa o docker compose down antes do docker compose run
     -h   | --help       Imprime esta mensagem de ajuda
     "
     	    exit
