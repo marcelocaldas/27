@@ -41,5 +41,4 @@ return [
 
     'app.geoDivisionsFilters' => [15],
     
-    'app.geoDivisionsShowAgentRI' => true,
 ];
