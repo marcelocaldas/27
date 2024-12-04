@@ -114,20 +114,6 @@ class Plugin extends \MapasCulturais\Plugin
            
         }, 10000);
 
-        $app->hook("SpreadsheetJob(entities-spreadsheets).getHeader:after", function($job, &$result){ 
-            $entity_class_name = $job->entityClassName;
-            if($entity_class_name == Agent::class){
-                $result["geoRI"] = $entity_class_name::getPropertyLabel("geoRI");
-            }
-        });
-
-        $app->hook("SpreadsheetJob(entities-spreadsheets).getBatch:before", function($job, &$job_query){ 
-            $entity_class_name = $job->entityClassName;
-            if($entity_class_name == Agent::class){
-                $job_query["@select"] .= ",geoRI";
-            }
-        });
-
         $this->reopenEvaluations();
     }
 
