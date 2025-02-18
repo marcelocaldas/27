@@ -1,7 +1,6 @@
-# Mapa da Cultura Brasileira (Mapa Cultural do Pará)
 
-Repositório para deploy do Mapa da Cultura Brasileira
-
+JP CULTURA
+Repositório para deploy da JP CULTURA- Copiado e adaptado do Mapa Cultural do Pará
 ## Estrutura de arquivos
 - **compose**
     - **common** - arquivos comuns dos ambientes de desenvolvimento e produção
