@@ -2,8 +2,8 @@
 use MapasCulturais\i;
 
 return [
-    'app.siteName' => 'Mapa cultural do Pará',
-    'app.siteDescription' => "O Mapa Cultural do Pará é uma plataforma colaborativa que reúne informações sobre agentes, espaços, eventos, projetos culturais e oportunidades",
+    'app.siteName' => 'JP Cultura',
+    'app.siteDescription' => "A JP Cultura é uma plataforma colaborativa que reúne informações sobre agentes, espaços, eventos, projetos culturais e oportunidades",
 
     'themes.active' => "MapasPA",
 
