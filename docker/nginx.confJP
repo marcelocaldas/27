@@ -1,4 +1,4 @@
-
+limit_req_zone $binary_remote_addr zone=mapas:10m rate=5r/s;
 server {
     listen 443 ssl;
     server_tokens off;
@@ -36,7 +36,7 @@ server {
     }
 
     location ~ \.php$ {
-       # limit_req zone=mapas burst=20 nodelay;
+        limit_req zone=mapas burst=20 nodelay;
         fastcgi_split_path_info ^(.+\.php)(/.+)$;
         fastcgi_pass mapasculturais:9000;
         fastcgi_index index.php;
