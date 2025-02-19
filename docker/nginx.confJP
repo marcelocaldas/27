@@ -2,7 +2,7 @@
 server {
     listen 443 ssl;
     server_tokens off;
-    server_name colmeia.redeambiental.net;
+    server_name jpcultura.joaopessoa.pb.gov.br;
     ssl_certificate /etc/letsencrypt/live/jpcultura.joaopessoa.pb.gov.br/fullchain.pem; # managed by Certbot
     ssl_certificate_key /etc/letsencrypt/live/jpcultura.joaopessoa.pb.gov.br/privkey.pem; # managed by Certbot
     include /etc/nginx/sites-avalaible/*.conf; # managed by Certbot
