@@ -1,1 +1,54 @@
 
+server {
+    listen 443 ssl;
+    server_tokens off;
+    server_name colmeia.redeambiental.net;
+    ssl_certificate /etc/letsencrypt/live/jpcultura.joaopessoa.pb.gov.br/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/jpcultura.joaopessoa.pb.gov.br/privkey.pem; # managed by Certbot
+    include /etc/nginx/sites-avalaible/*.conf; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+    error_log /var/log/nginx/error.log;
+    access_log /var/log/nginx/access.log;
+
+    client_max_body_size 1G;
+
+    root /var/www/html;
+
+    location / {
+        index index.php index.html;
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location ~ /files/.*\.php$ {
+        deny all;
+        return 403;
+    }
+
+    location ~ /asset/.*\.php$ {
+        deny all;
+        return 403;
+    }
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|woff)$ {
+        expires 1w;
+        log_not_found off;
+    }
+
+    location ~ \.php$ {
+       # limit_req zone=mapas burst=20 nodelay;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass mapas:9000;
+        fastcgi_index index.php;
+        fastcgi_read_timeout 3600;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+    }
+
+
+
+
+    charset utf-8;
+
+}
