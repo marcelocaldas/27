@@ -8,7 +8,7 @@ return [
     'themes.active' => "MapasPA",
 
     'app.lcode' => 'pt_BR',
-    'homeHeader.banner' => 'img/banner-paulo-gustavo.png',
+      /*'homeHeader.banner' => 'img/banner-paulo-gustavo.png',
     'homeHeader.bannerLink' => 'https://mapacultural.pa.gov.br/files/agent/7/caderno-de-orientacoes-pcac-27-09-2023.pdf',
     'homeHeader.downloadableLink' => true,
 
@@ -18,7 +18,7 @@ return [
 
     'homeHeader.thirdBanner' => 'img/banner-acessibilidade.jpg',
     'homeHeader.thirdBannerLink' => 'https://www.secult.pa.gov.br/download/81/guias-de-acessibilidade-inclusao-e-protagonismo-da-pessoa-com-deficiencia-e-do-migrante/',
-    'homeHeader.thirdDownloadableLink' => true,
+    'homeHeader.thirdDownloadableLink' => true,*/
     'app.geoDivisionsHierarchy' => [
         'pais'              => ['name' => i::__('País'),            'showLayer' => true],
         'estado'            => ['name' => i::__('Estado'),          'showLayer' => true],
