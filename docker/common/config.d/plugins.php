@@ -49,6 +49,7 @@ $config_plugins = [
                 'location' => ['En_Municipio', 'En_Nome_Logradouro', 'En_Bairro', 'En_Estado']
             ]
         ],
+    /*
         'Metabase' => [
             'namespace' => 'Metabase',
             'config' => [
@@ -204,7 +205,7 @@ $config_plugins = [
                 
                 ],
             ],
-        ]
+        ] */
     ]
 ];
 
